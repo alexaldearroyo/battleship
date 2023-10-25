@@ -19,11 +19,43 @@ class Ship {
     }
 }
 
+class Gameboard {
+    constructor() {
+        this.ships = [];
+        this.missedAttacks = [];
+    }
+
+    placeShip(ship, x, y) {
+        ship.coordinates = { x, y };
+        this.ships.push(ship);
+    }
+
+    receiveAttack(x, y) {
+        let hit = false;
+        this.ships.forEach(ship => {
+            if (ship.coordinates.x === x && ship.coordinates.y === y) {
+                ship.hit();
+                hit = true;
+            }
+        });
+        if (!hit) {
+            this.missedAttacks.push({ x, y });
+        }
+    }
+
+    allShipsSunk() {
+        return this.ships.every(ship => ship.isSunk());
+    }
+}
+
+
 const carrier = new Ship(5);
 const battleship = new Ship(4);
 const cruiser = new Ship(3);
 const submarine = new Ship(3);
 const boat = new Ship(2);
+
+const playerGameboard = new Gameboard();
 
 
 document.addEventListener('DOMContentLoaded', function() {
