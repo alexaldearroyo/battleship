@@ -1,6 +1,7 @@
 import '../sass/main.scss';
 import Ship from './ship.js';
 import Gameboard from './gameboard.js';
+import Player from './player.js';
 
 const carrier = new Ship(5);
 const battleship = new Ship(4);
@@ -10,6 +11,9 @@ const boat = new Ship(2);
 
 const playerGameboard = new Gameboard();
 const computerGameboard = new Gameboard();
+
+const human = new Player('Human');
+const computer = new Player('Computer');
 
 document.addEventListener('DOMContentLoaded', function() {
     const startGameButton = document.getElementById('startGameButton');
