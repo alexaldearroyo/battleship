@@ -1,14 +1,14 @@
 import '../sass/main.scss';
 
 document.addEventListener('DOMContentLoaded', function() {
-    const startGameBtn = document.getElementById('startGameButton');
+    const startGameButton = document.getElementById('startGameButton');
     const gameContainer = document.getElementById('gameContainer');
 
-    startGameBtn.addEventListener('click', function() {
+    startGameButton.addEventListener('click', function() {
         // Mostrar el contenedor de los tableros
-        gameContainer.style.display = 'block';
+        gameContainer.style.display = 'flex';
 
         // Opcional: Ocultar el botón "Start Game" después de hacer clic en él
-        startGameBtn.style.display = 'none';
+        startGameButton.style.display = 'none';
     });
 });

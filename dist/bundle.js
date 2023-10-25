@@ -1,1 +1,1 @@
-(()=>{"use strict";document.addEventListener("DOMContentLoaded",(function(){const t=document.getElementById("startGameButton"),e=document.getElementById("gameContainer");t.addEventListener("click",(function(){e.style.display="block",t.style.display="none"}))}))})();
+(()=>{"use strict";document.addEventListener("DOMContentLoaded",(function(){const e=document.getElementById("startGameButton"),t=document.getElementById("gameContainer");e.addEventListener("click",(function(){t.style.display="flex",e.style.display="none"}))}))})();
