@@ -1,7 +1,7 @@
 import '../sass/main.scss';
 
 document.addEventListener('DOMContentLoaded', function() {
-    const startGameBtn = document.getElementById('startGameBtn');
+    const startGameBtn = document.getElementById('startGameButton');
     const gameContainer = document.getElementById('gameContainer');
 
     startGameBtn.addEventListener('click', function() {
