@@ -1,53 +1,6 @@
 import '../sass/main.scss';
-
-class Ship {
-    constructor(length) {
-        this.length = length;
-        this.hits = 0;
-        this.sunk = false;
-    }
-
-    hit() {
-        this.hits++;
-        if (this.hits >= this.length) {
-            this.sunk = true;
-        }
-    }
-
-    isSunk() {
-        return this.sunk;
-    }
-}
-
-class Gameboard {
-    constructor() {
-        this.ships = [];
-        this.missedAttacks = [];
-    }
-
-    placeShip(ship, x, y) {
-        ship.coordinates = { x, y };
-        this.ships.push(ship);
-    }
-
-    receiveAttack(x, y) {
-        let hit = false;
-        this.ships.forEach(ship => {
-            if (ship.coordinates.x === x && ship.coordinates.y === y) {
-                ship.hit();
-                hit = true;
-            }
-        });
-        if (!hit) {
-            this.missedAttacks.push({ x, y });
-        }
-    }
-
-    allShipsSunk() {
-        return this.ships.every(ship => ship.isSunk());
-    }
-}
-
+import Ship from './ship.js';
+import Gameboard from './gameboard.js';
 
 const carrier = new Ship(5);
 const battleship = new Ship(4);
@@ -56,7 +9,7 @@ const submarine = new Ship(3);
 const boat = new Ship(2);
 
 const playerGameboard = new Gameboard();
-
+const computerGameboard = new Gameboard();
 
 document.addEventListener('DOMContentLoaded', function() {
     const startGameButton = document.getElementById('startGameButton');
@@ -77,9 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generar tableros
     const playerGrid = document.querySelector('#player-board .grid');
-    const machineGrid = document.querySelector('#machine-board .grid');
+    const computerGrid = document.querySelector('#computer-board .grid');
     generateBoard(playerGrid);
-    generateBoard(machineGrid);
+    generateBoard(computerGrid);
 
     startGameButton.addEventListener('click', function() {
         // Mostrar el contenedor de los tableros
