@@ -1,0 +1,78 @@
+@import "~bootstrap/scss/bootstrap";
+
+// Variables personalizadas
+$board-bg: #f7f9fc;
+$cell-bg: #ffffff;
+$cell-border: #d1d5db;
+$cell-size: 40px;
+$btn-bg: #007bff;
+$btn-hover-bg: darken($btn-bg, 10%);
+
+// Estilos generales
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: $board-bg;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 0 50px;
+}
+
+#startGameBtn {
+    background-color: $btn-bg;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: $btn-hover-bg;
+    }
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+}
+
+.board {
+    background-color: $cell-bg;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 45%; 
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(10, $cell-size);
+        gap: 5px;
+
+        .cell {
+            width: $cell-size;
+            height: $cell-size;
+            background-color: $cell-bg;
+            border: 1px solid $cell-border;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: lighten($cell-bg, 10%);
+            }
+        }
+    }
+}
