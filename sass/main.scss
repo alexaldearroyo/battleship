@@ -79,6 +79,7 @@ body {
         grid-template-columns: repeat(10, 10%);
         grid-template-rows: repeat(10, 10%);
         width: 100%;
+        gap: 0;
         max-width: 500px; // o cualquier tamaño máximo que desees
         position: relative;
         aspect-ratio: 1/1; // Esto mantiene la relación de aspecto cuadrada para .grid
@@ -87,7 +88,6 @@ body {
             position: relative;
             background-color: $cell-bg;
             border: 1px solid $cell-border;
-            border-radius: 3px;
             transition: background-color 0.3s;
 
             &:hover {
