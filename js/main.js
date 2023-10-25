@@ -1,5 +1,31 @@
 import '../sass/main.scss';
 
+class Ship {
+    constructor(length) {
+        this.length = length;
+        this.hits = 0;
+        this.sunk = false;
+    }
+
+    hit() {
+        this.hits++;
+        if (this.hits >= this.length) {
+            this.sunk = true;
+        }
+    }
+
+    isSunk() {
+        return this.sunk;
+    }
+}
+
+const carrier = new Ship(5);
+const battleship = new Ship(4);
+const cruiser = new Ship(3);
+const submarine = new Ship(3);
+const boat = new Ship(2);
+
+
 document.addEventListener('DOMContentLoaded', function() {
     const startGameButton = document.getElementById('startGameButton');
     const gameContainer = document.getElementById('gameContainer');
