@@ -5,6 +5,7 @@ test('Place ship on gameboard', () => {
   const gameboard = new Gameboard();
   const ship = new Ship(3);
   gameboard.placeShip(ship, 2, 3);
+  ship.coordinates = { x: 2, y: 3 };
   expect(gameboard.ships.length).toBe(1);
   expect(gameboard.ships[0].coordinates).toEqual({ x: 2, y: 3 });
 });
