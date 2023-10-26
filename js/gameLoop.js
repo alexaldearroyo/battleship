@@ -16,7 +16,7 @@ function startGame(human, computer, humanGameboard, computerGameboard) {
     // Muestra el contenedor del juego y oculta el botón "Start Game"
     const gameContainer = document.getElementById("gameContainer");
     const startGameButton = document.getElementById("startGameButton");
-    gameContainer.style.display = "block";
+    gameContainer.style.display = "flex";
     startGameButton.style.display = "none";
 }
 

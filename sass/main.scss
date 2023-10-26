@@ -47,57 +47,62 @@ body {
     }
 }
 
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
+#gameContainer {
     display: flex;
     justify-content: space-between;
-    width: 90%;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.board {
-    background-color: $cell-bg;
-    border-radius: 5px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 45%;
-    margin: 0 auto;
-    overflow: hidden;
+    flex-wrap: wrap;
 
-    h2 {
-        text-align: center;
-        font-size: 1.5em;
-        margin-bottom: 20px;
-    }
-
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(10, 10%);
-        grid-template-rows: repeat(10, 10%);
+    .board {
+        flex: 1;
+        margin: 0 10px;
+        background-color: $cell-bg;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         width: 100%;
-        gap: 0;
-        max-width: 500px; // o cualquier tamaño máximo que desees
-        position: relative;
-        aspect-ratio: 1/1; // Esto mantiene la relación de aspecto cuadrada para .grid
+        max-width: 45%;
+        // margin: 0 auto;
+        overflow: hidden;
 
-        .cell {
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &:last-child {
+            margin-right: 0;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 10%);
+            grid-template-rows: repeat(10, 10%);
+            width: 100%;
+            gap: 0;
+            max-width: 500px; // o cualquier tamaño máximo que desees
             position: relative;
-            background-color: $cell-bg;
-            border: 1px solid $cell-border;
-            transition: background-color 0.3s;
+            aspect-ratio: 1/1; // Esto mantiene la relación de aspecto cuadrada para .grid
 
-            &:hover {
-                background-color: lighten($cell-bg, 10%);
+            .cell {
+                position: relative;
+                background-color: $cell-bg;
+                border: 1px solid $cell-border;
+                transition: background-color 0.3s;
+
+                &:hover {
+                    background-color: lighten($cell-bg, 10%);
+                }
             }
         }
     }
-
-
 }
+
 
 .cell-preview {
     background-color: #1c6db9; 
@@ -106,8 +111,21 @@ body {
 
 @media (max-width: 768px) {
 
-    .container {
+    #gameContainer {
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        gap: 20px;  // Esto añadirá un espacio entre los dos tableros
+    }
+
+    #gameContainer .board {
+        max-width: 90%;  // Reduce el ancho máximo de cada tablero a un 90% del contenedor
+        margin-left: 0;   // Elimina el margen izquierdo
+        margin-right: 0;  // Elimina el margen derecho
+    }
+
+    #gameContainer .board .grid {
+        max-width: 400px; // Reduce el tamaño máximo de la cuadrícula
     }
 }
+
