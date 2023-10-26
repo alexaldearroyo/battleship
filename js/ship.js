@@ -1,5 +1,5 @@
 export default class Ship {
-    constructor(length) {
+    constructor(length, name) {
         this.length = length;
         this.name = name; // Agregar el nombre del barco
         this.hits = 0;

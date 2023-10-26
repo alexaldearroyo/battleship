@@ -1,22 +1,77 @@
+import Ship from './ship'; 
+
 export function renderBoard(humanGameboard, computerGameboard) {
-    // Aquí irá el código para renderizar ambos tableros en el DOM
+    const humanGrid = document.querySelector("#human-board .grid");
+    const computerGrid = document.querySelector("#computer-board .grid");
+    
+    // Asumiendo un tablero de 10x10
+    const size = 10;
+
+    // Limpiar cualquier contenido previo
+    humanGrid.innerHTML = '';
+    computerGrid.innerHTML = '';
+
+    // Crear celdas para el humano
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.x = i;
+            cell.dataset.y = j;
+            humanGrid.appendChild(cell);
+        }
+    }
+
+    // Crear celdas para la computadora
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.x = i;
+            cell.dataset.y = j;
+            computerGrid.appendChild(cell);
+        }
+    }
 }
+
 
 export function placeShipsForHuman(player, gameboard) {
     const humanGrid = document.querySelector("#human-board .grid");
     const ships = [
-        { name: "carrier", length: 5 },
-        { name: "battleship", length: 4 },
-        { name: "cruiser", length: 3 },
-        { name: "submarine", length: 3 },
-        { name: "boat", length: 2 }
+        new Ship(5, "carrier"),
+        new Ship(4, "battleship"),
+        new Ship(3, "cruiser"),
+        new Ship(3, "submarine"),
+        new Ship(2, "boat")
     ];
+    
     let currentShipIndex = 0;
 
     humanGrid.addEventListener("mouseover", function(event) {
         if (event.target.classList.contains("cell")) {
-            // Aquí puedes agregar lógica para mostrar visualmente cómo se vería el barco si se coloca en esa posición
-            // Por ejemplo, cambiando el color de fondo de las celdas donde se colocaría el barco
+            const x = parseInt(event.target.dataset.x);
+            const y = parseInt(event.target.dataset.y);
+            const ship = ships[currentShipIndex];
+
+            // Elimina la clase cell-preview de todas las celdas
+            document.querySelectorAll(".cell-preview").forEach(cell => cell.classList.remove("cell-preview"));
+
+            // Verifica si el barco puede ser colocado en la posición actual
+            if (gameboard.isValidPosition(ship, x, y)) {
+                for (let i = 0; i < ship.length; i++) {
+                    const cell = humanGrid.querySelector(`[data-x="${x + i}"][data-y="${y}"]`);
+                    if (cell) {
+                        cell.classList.add("cell-preview");
+                    }
+                }
+            }
+        }
+    });
+
+    humanGrid.addEventListener("mouseout", function(event) {
+        if (event.target.classList.contains("cell")) {
+            // Elimina la clase cell-preview de todas las celdas cuando el ratón sale de una celda
+            document.querySelectorAll(".cell-preview").forEach(cell => cell.classList.remove("cell-preview"));
         }
     });
 
