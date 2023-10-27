@@ -55,6 +55,7 @@ body {
     justify-content: center;
     align-items: flex-start;
     padding: 0;
+    margin-bottom: 50px;
 }
 
 .boardsSpace {
@@ -66,13 +67,49 @@ body {
     gap: 2%;
 }
 
+.playerLabel, .computerLabel {
+    font-size: 22px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border: 0.5px solid #333;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 
 .playerBoardContainer, .computerBoardContainer {
     min-width: 400px; /* No será más pequeño que 400px. */
     aspect-ratio: 1;
-    background-color: #e1e1e1;
+    /* background-color: #e1e1e1; */
     margin: 0 2.5vw;
+    position: relative; /* Establece posición relativa para que los elementos de etiqueta sean relativos a este contenedor */
+    margin-top: 40px; /* Aumenta el espacio entre el título y el tablero */
+
 }
+
+/* Estilos para contenedor de tablero */
+.board-container {
+    display: grid; /* Utiliza un sistema de cuadrícula para organizar las celdas */
+    grid-template-columns: repeat(10, 40px); /* Cambia el tamaño de las columnas a 40px */
+    grid-template-rows: repeat(10, 40px); /* Cambia el tamaño de las filas a 40px */
+    margin: 0 auto; /* Centra el tablero horizontalmente en su contenedor */
+}
+
+/* Estilos de las celdas */
+.cell {
+    aspect-ratio: 1;
+    background-color: white; /* Fondo blanco para celdas vacías */
+    border: 0.5px solid #000; /* Línea negra para bordes de celdas */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: transparent; /* Hace que el contenido de la celda sea transparente */
+}
+
 
 
 /* Estilos para cuando la ventana tenga una estrechura menor a 500px */

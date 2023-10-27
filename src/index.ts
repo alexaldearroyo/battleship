@@ -1,4 +1,5 @@
 import './styles/main.css';
+import { playerBoard, computerBoard, Board } from './scripts/boards';
 
 const startButton = document.querySelector(".startGameButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
@@ -32,16 +33,76 @@ function startGame() {
     const computerBoardContainer = document.createElement("div");
     computerBoardContainer.classList.add("computerBoardContainer");
 
+    // Crea elementos span para los labels de jugador y computadora
+    const playerLabel = document.createElement("span");
+    playerLabel.classList.add("playerLabel");
+    playerLabel.textContent = "Player";
+    playerBoardContainer.appendChild(playerLabel);
+
+    const computerLabel = document.createElement("span");
+    computerLabel.classList.add("computerLabel");
+    computerLabel.textContent = "Computer";
+    computerBoardContainer.appendChild(computerLabel);
+
     // Añade los tableros a boardsSpace
     boardsSpace.appendChild(playerBoardContainer);
     boardsSpace.appendChild(computerBoardContainer);
 
+    if (playerBoardContainer && computerBoardContainer) {
+        generateGrid(playerBoard, playerBoardContainer);
+        generateGrid(computerBoard, computerBoardContainer);
+    }
+
+    // Create a new div element for the additional content
+    const additionalContent = document.createElement("div");
+    additionalContent.classList.add("labelSpace");
+
     if (mainPage) {
+        mainPage.appendChild(additionalContent); // Add the additional content to the main page
         mainPage.appendChild(boardsSpace);
     }
 }
 
-
 if (startButton) {
     startButton.addEventListener("click", startGame);
+}
+
+function generateGrid(board: Board, container: HTMLElement) {
+    const boardSize = board.length; // Obtiene el tamaño del tablero
+    
+    // Crea un contenedor para las celdas y aplica la clase "board-container"
+    const cellContainer = document.createElement("div");
+    cellContainer.classList.add("board-container");
+    
+    for (let x = 0; x < boardSize; x++) {
+        for (let y = 0; y < boardSize; y++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+
+            // Agregar clases CSS según el estado de la celda en el tablero
+            switch (board[x][y].status) {
+                case "empty":
+                    cell.classList.add("empty");
+                    break;
+                case "ship":
+                    cell.classList.add("ship");
+                    break;
+                case "miss":
+                    cell.classList.add("miss"); // Agregar clase para disparo fallido
+                    break;
+                case "hit":
+                    cell.classList.add("hit"); // Agregar clase para disparo exitoso
+                    break;
+                default:
+                    break;
+            }
+
+            // Agregar coordenadas como contenido de la celda
+            cell.textContent = `${x},${y}`;
+
+            cellContainer.appendChild(cell);
+        }
+    }
+    
+    container.appendChild(cellContainer); // Agrega el contenedor de celdas al contenedor principal
 }
