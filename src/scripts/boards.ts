@@ -1,12 +1,14 @@
-// boards.ts
+import { Ship } from './ships';
 
-type CellStatus = "empty" | "ship" | "miss" | "hit";
+// type CellStatus = "empty" | "ship" | "miss" | "hit";
 
 interface Cell {
     x: number;
     y: number;
-    status: CellStatus;
+    status: 'empty' | 'ship' | 'hit' | 'miss';
+    ship?: Ship;
 }
+
 
 type Board = Cell[][];
 

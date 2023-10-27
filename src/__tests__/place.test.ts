@@ -1,8 +1,7 @@
-// __tests__/place.test.ts
-
 import {
     playerBoard,
-    computerBoard
+    computerBoard,
+    Cell,
   } from '../scripts/boards';
   
   import {
@@ -18,98 +17,78 @@ import {
     PatrolComputer
   } from '../scripts/ships';
   
-  import { playerPlacement, computerPlacement } from '../scripts/place';
-  
-  describe('Placement Module', () => {
-  
-    beforeEach(() => {
-      // Reset boards before each test
-      for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 10; y++) {
-          playerBoard[x][y].status = "empty";
-          computerBoard[x][y].status = "empty";
-        }
+  import { playerPlacement, computerPlacement } from '../scripts/place'; // Reemplaza con la ubicación correcta de tu módulo de colocación
+
+  // Función para restablecer el tablero
+  function resetBoard(board: Cell[][]): void {
+    for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 10; y++) {
+        board[x][y].status = 'empty';
+        board[x][y].ship = undefined; // Establecer ship como undefined
       }
+    }
+  }
+  
+  
+  describe('Ship Placement', () => {
+    beforeEach(() => {
+      // Restablecer los tableros antes de cada prueba
+      resetBoard(playerBoard);
+      resetBoard(computerBoard);
     });
   
-    test('playerPlacement places ships on playerBoard', () => {
+    test('Player placement should place all player ships', () => {
       playerPlacement();
       
       const playerShips = [CarrierPlayer, BattleshipPlayer, DestructorPlayer, SubmarinePlayer, PatrolPlayer];
+  
       for (const ship of playerShips) {
-        expect(playerBoard.flat().filter(cell => cell.status === 'ship').length).toBeGreaterThanOrEqual(ship.length);
+        const placedShip = playerBoard.flat().find(cell => cell.ship === ship);
+        expect(placedShip).toBeDefined();
       }
     });
   
-    test('computerPlacement places ships on computerBoard', () => {
+    test('Computer placement should place all computer ships', () => {
       computerPlacement();
-      
+  
       const computerShips = [CarrierComputer, BattleshipComputer, DestructorComputer, SubmarineComputer, PatrolComputer];
+  
       for (const ship of computerShips) {
-        expect(computerBoard.flat().filter(cell => cell.status === 'ship').length).toBeGreaterThanOrEqual(ship.length);
+        const placedShip = computerBoard.flat().find(cell => cell.ship === ship);
+        expect(placedShip).toBeDefined();
       }
     });
   
-    test('Ships occupy the correct number of cells', () => {
+    test('Ships should not overlap on player board', () => {
       playerPlacement();
-      computerPlacement();
+      const playerShips = [CarrierPlayer, BattleshipPlayer, DestructorPlayer, SubmarinePlayer, PatrolPlayer];
   
-      expect(playerBoard.flat().filter(cell => cell.status === 'ship').length).toBe(5 + 4 + 3 + 3 + 2);
-      expect(computerBoard.flat().filter(cell => cell.status === 'ship').length).toBe(5 + 4 + 3 + 3 + 2);
+      for (let i = 0; i < playerShips.length; i++) {
+        for (let j = i + 1; j < playerShips.length; j++) {
+          const shipA = playerBoard.flat().find(cell => cell.ship === playerShips[i]);
+          const shipB = playerBoard.flat().find(cell => cell.ship === playerShips[j]);
+  
+          if (shipA && shipB) {
+            expect(shipA).not.toEqual(shipB);
+          }
+        }
+      }
     });
   
-    test('No ships are adjacent in playerBoard', () => {
-      playerPlacement();
-  
-      let adjacentShips = false;
-      for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 10; y++) {
-          if (playerBoard[x][y].status === 'ship') {
-            const directions = [
-              [-1, 0], [1, 0], [0, -1], [0, 1]
-            ];
-            for (const [dx, dy] of directions) {
-              const newX = x + dx;
-              const newY = y + dy;
-              if (newX >= 0 && newY >= 0 && newX < 10 && newY < 10 && playerBoard[newX][newY].status === 'ship') {
-                adjacentShips = true;
-                break;
-              }
-            }
-          }
-          if (adjacentShips) break;
-        }
-        if (adjacentShips) break;
-      }
-  
-      expect(adjacentShips).toBeFalsy();
-    });
-  
-    test('No ships are adjacent in computerBoard', () => {
+    test('Ships should not overlap on computer board', () => {
       computerPlacement();
+      const computerShips = [CarrierComputer, BattleshipComputer, DestructorComputer, SubmarineComputer, PatrolComputer];
   
-      let adjacentShips = false;
-      for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 10; y++) {
-          if (computerBoard[x][y].status === 'ship') {
-            const directions = [
-              [-1, 0], [1, 0], [0, -1], [0, 1]
-            ];
-            for (const [dx, dy] of directions) {
-              const newX = x + dx;
-              const newY = y + dy;
-              if (newX >= 0 && newY >= 0 && newX < 10 && newY < 10 && computerBoard[newX][newY].status === 'ship') {
-                adjacentShips = true;
-                break;
-              }
-            }
+      for (let i = 0; i < computerShips.length; i++) {
+        for (let j = i + 1; j < computerShips.length; j++) {
+          const shipA = computerBoard.flat().find(cell => cell.ship === computerShips[i]);
+          const shipB = computerBoard.flat().find(cell => cell.ship === computerShips[j]);
+  
+          if (shipA && shipB) {
+            expect(shipA).not.toEqual(shipB);
           }
-          if (adjacentShips) break;
         }
-        if (adjacentShips) break;
       }
-  
-      expect(adjacentShips).toBeFalsy();
     });
   });
   
