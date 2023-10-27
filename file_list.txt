@@ -1,500 +1,374 @@
-src/styles/main.css:
-
-body {
-    font-family: 'Arial', sans-serif;
-    height: 100vh;
-    max-height: 100vh; /* Asegura que body no exceda la altura de la ventana */
-    width: 100vw;
-    max-width: 100vw; /* Asegura que body no exceda el ancho de la ventana */
-    background-color: #f5f5f5;
-    margin: 0;
-    overflow: hidden; /* Esconde cualquier desbordamiento */
-}
-
-.mainPage {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 200px;
-    background-color: #fff;
-    height: 100vh;
-    max-height: 100vh; /* Asegura que mainPage no exceda la altura de la ventana */
-    width: 100vw;
-    max-width: 100vw; /* Asegura que mainPage no exceda el ancho de la ventana */
-    box-sizing: border-box; /* Incluye el padding y el borde en el ancho/alto total */
-}
-
-.title {
-    font-size: 64px;
-    margin-bottom: 40px;
-}
-
-.smallTitle {
-    font-size: 32px; /* Reduce el tamaño de la fuente */
-    margin: 0;
-}
-
-.startButton {
-    padding: 20px 40px;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    background-color: #007BFF;
-    transition: background-color 0.3s ease;
-    font-size: 18px;
-    color: white;
-}
-
-.startButton:hover {
-    background-color: #0056b3;
-}
-
-.titleSpace {
-    flex-grow: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 0;
-    margin-bottom: 50px;
-}
-
-.boardsSpace {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    gap: 2%;
-}
-
-.playerLabel, .computerLabel {
-    font-size: 22px;
-    padding: 12px;
-    background-color: #f5f5f5;
-    border: 0.5px solid #333;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-
-.playerBoardContainer, .computerBoardContainer {
-    min-width: 400px; /* No será más pequeño que 400px. */
-    aspect-ratio: 1;
-    /* background-color: #e1e1e1; */
-    margin: 0 2.5vw;
-    position: relative; /* Establece posición relativa para que los elementos de etiqueta sean relativos a este contenedor */
-    margin-top: 40px; /* Aumenta el espacio entre el título y el tablero */
-
-}
-
-/* Estilos para contenedor de tablero */
-.board-container {
-    display: grid; /* Utiliza un sistema de cuadrícula para organizar las celdas */
-    grid-template-columns: repeat(10, 40px); /* Cambia el tamaño de las columnas a 40px */
-    grid-template-rows: repeat(10, 40px); /* Cambia el tamaño de las filas a 40px */
-    margin: 0 auto; /* Centra el tablero horizontalmente en su contenedor */
-}
-
-/* Estilos de las celdas */
-.cell {
-    aspect-ratio: 1;
-    background-color: white; /* Fondo blanco para celdas vacías */
-    border: 0.5px solid #000; /* Línea negra para bordes de celdas */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: transparent; /* Hace que el contenido de la celda sea transparente */
-}
-
-/* Estilos de las celdas para barcos */
-.ship-cell {
-    background-color: blue; /* Cambia el fondo de las celdas a azul */
-    color: white; /* Cambia el color del texto a blanco para que sea visible */
-}
-
-
-
-/* Estilos para cuando la ventana tenga una estrechura menor a 500px */
-@media (max-width: 500px) {
-    .boardsSpace {
-        flex-direction: column;
-    }
-
-    .computerBoardContainer, .playerBoardContainer {
-        width: 80%; /* O el ancho que desees para esta estrechura */
-        margin: 10px auto; /* Centra los tableros y añade un pequeño margen entre ellos */
-    }
-}
-
-
-
-
-----------------------------------------
-
 src/index.ts:
 
-import './styles/main.css';
-import { playerBoard, computerBoard, Board } from './scripts/boards';
+import "./styles/main.css";
+import { playerBoard, computerBoard, Board } from "./scripts/boards";
+import {
+  manualPlacement,
+  playerPlacement,
+  computerPlacement,
+} from "./scripts/place";
+
 
 const startButton = document.querySelector(".startButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
 const mainPage = document.querySelector(".mainPage") as HTMLElement;
 
 function startGame() {
-    // Elimina el botón de START GAME
-    if (startButton) startButton.remove();
+  // Elimina el botón de START GAME
+  if (startButton) startButton.remove();
 
-    // Envuelve el título en un nuevo div llamado titleSpace
-    const titleSpace = document.createElement("div");
-    titleSpace.classList.add("titleSpace");
+  // Envuelve el título en un nuevo div llamado titleSpace
+  const titleSpace = document.createElement("div");
+  titleSpace.classList.add("titleSpace");
 
-    // Modifica el título para hacerlo más pequeño
-    if (title) {
-        title.classList.add("smallTitle");
-        titleSpace.appendChild(title); // Reinserta el título en titleSpace
-    }
+  // Modifica el título para hacerlo más pequeño
+  if (title) {
+    title.classList.add("smallTitle");
+    titleSpace.appendChild(title); // Reinserta el título en titleSpace
+  }
 
-    if (mainPage) {
-        mainPage.insertBefore(titleSpace, mainPage.firstChild); // Añade titleSpace al inicio de mainPage
-    }
+  if (mainPage) {
+    mainPage.insertBefore(titleSpace, mainPage.firstChild); // Añade titleSpace al inicio de mainPage
+  }
 
-    // Crea un nuevo div para boardsSpace
-    const boardsSpace = document.createElement("div");
-    boardsSpace.classList.add("boardsSpace");
+  // Crea un nuevo div para boardsSpace
+  const boardsSpace = document.createElement("div");
+  boardsSpace.classList.add("boardsSpace");
 
-    // Crea divs para playerBoardContainer y computerBoardContainer
-    const playerBoardContainer = document.createElement("div");
-    playerBoardContainer.classList.add("playerBoardContainer");
-    const computerBoardContainer = document.createElement("div");
-    computerBoardContainer.classList.add("computerBoardContainer");
+  // Crea divs para playerBoardContainer y computerBoardContainer
+  const playerBoardContainer = document.createElement("div");
+  playerBoardContainer.classList.add("playerBoardContainer");
+  const computerBoardContainer = document.createElement("div");
+  computerBoardContainer.classList.add("computerBoardContainer");
 
-    // Crea elementos span para los labels de jugador y computadora
-    const playerLabel = document.createElement("span");
-    playerLabel.classList.add("playerLabel");
-    playerLabel.textContent = "Player";
-    playerBoardContainer.appendChild(playerLabel);
+  // Crea elementos span para los labels de jugador y computadora
+  const playerLabel = document.createElement("span");
+  playerLabel.classList.add("playerLabel");
+  playerLabel.textContent = "Player";
+  playerBoardContainer.appendChild(playerLabel);
 
-    const computerLabel = document.createElement("span");
-    computerLabel.classList.add("computerLabel");
-    computerLabel.textContent = "Computer";
-    computerBoardContainer.appendChild(computerLabel);
+  const computerLabel = document.createElement("span");
+  computerLabel.classList.add("computerLabel");
+  computerLabel.textContent = "Computer";
+  computerBoardContainer.appendChild(computerLabel);
 
-    // Añade los tableros a boardsSpace
-    boardsSpace.appendChild(playerBoardContainer);
-    boardsSpace.appendChild(computerBoardContainer);
+  // Añade los tableros a boardsSpace
+  boardsSpace.appendChild(playerBoardContainer);
+  boardsSpace.appendChild(computerBoardContainer);
 
-    if (playerBoardContainer && computerBoardContainer) {
-        generateGrid(playerBoard, playerBoardContainer);
-        generateGrid(computerBoard, computerBoardContainer);
-    }
+  // Llama a las funciones de colocación
+  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
+  manualPlacement(playerBoardContainer);
+  computerPlacement();
 
-    if (mainPage) {
-        mainPage.appendChild(boardsSpace);
-    }
+  if (playerBoardContainer && computerBoardContainer) {
+    generateGrid(playerBoard, playerBoardContainer);
+    generateGrid(computerBoard, computerBoardContainer);
+  }
+
+  if (mainPage) {
+    mainPage.appendChild(boardsSpace);
+  }
 }
 
 if (startButton) {
-    startButton.addEventListener("click", startGame);
+  startButton.addEventListener("click", startGame);
 }
 
 function generateGrid(board: Board, container: HTMLElement) {
-    const boardSize = board.length; // Obtiene el tamaño del tablero
-    
-    // Crea un contenedor para las celdas y aplica la clase "board-container"
-    const cellContainer = document.createElement("div");
-    cellContainer.classList.add("board-container");
-    
-    for (let x = 0; x < boardSize; x++) {
-        for (let y = 0; y < boardSize; y++) {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
+  const boardSize = board.length; // Obtiene el tamaño del tablero
 
-            // Agregar clases CSS según el estado de la celda en el tablero
-            switch (board[x][y].status) {
-                case "empty":
-                    cell.classList.add("empty");
-                    break;
-                case "ship":
-                    cell.classList.add("ship");
-                    break;
-                case "miss":
-                    cell.classList.add("miss"); // Agregar clase para disparo fallido
-                    break;
-                case "hit":
-                    cell.classList.add("hit"); // Agregar clase para disparo exitoso
-                    break;
-                default:
-                    break;
-            }
+  // Crea un contenedor para las celdas y aplica la clase "board-container"
+  const cellContainer = document.createElement("div");
+  cellContainer.classList.add("board-container");
 
-            // Agregar coordenadas como contenido de la celda
-            cell.textContent = `${x},${y}`;
+  for (let x = 0; x < boardSize; x++) {
+    for (let y = 0; y < boardSize; y++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
 
-            cellContainer.appendChild(cell);
-        }
+      // Agregar clases CSS según el estado de la celda en el tablero
+      switch (board[x][y].status) {
+        case "empty":
+          cell.classList.add("empty");
+          break;
+        case "ship":
+          cell.classList.add("ship");
+          if (container.classList.contains("playerBoardContainer")) {
+            // Sólo aplica el color azul si es el tablero del jugador
+            cell.classList.add("blue");
+          }
+          break;
+        case "miss":
+          cell.classList.add("miss"); // Agregar clase para disparo fallido
+          break;
+        case "hit":
+          cell.classList.add("hit"); // Agregar clase para disparo exitoso
+          break;
+        default:
+          break;
+      }
+
+      // Agregar coordenadas como contenido de la celda
+      cell.textContent = `${x},${y}`;
+
+      cellContainer.appendChild(cell);
+
+      cell.dataset.x = x.toString();
+      cell.dataset.y = y.toString();
     }
-    
-    container.appendChild(cellContainer); // Agrega el contenedor de celdas al contenedor principal
+  }
+
+  container.appendChild(cellContainer); // Agrega el contenedor de celdas al contenedor principal
 }
-
-----------------------------------------
-
-src/scripts/boards.ts:
-
-import { Ship } from './ships';
-
-// type CellStatus = "empty" | "ship" | "miss" | "hit";
-
-interface Cell {
-    x: number;
-    y: number;
-    status: 'empty' | 'ship' | 'hit' | 'miss';
-    ship?: Ship;
-}
-
-
-type Board = Cell[][];
-
-// Función de ayuda para crear un tablero vacío con coordenadas
-function createEmptyBoard(size: number): Board {
-    const board: Board = [];
-    for (let x = 0; x < size; x++) {
-        const row: Cell[] = [];
-        for (let y = 0; y < size; y++) {
-            row.push({
-                x,
-                y,
-                status: "empty"
-            });
-        }
-        board.push(row);
-    }
-    return board;
-}
-
-// Crear tableros de 10x10 con coordenadas
-const playerBoard: Board = createEmptyBoard(10);
-const computerBoard: Board = createEmptyBoard(10);
-
-export { playerBoard, computerBoard, Board, Cell };
-
-----------------------------------------
-
-src/scripts/game.ts:
-
 
 ----------------------------------------
 
 src/scripts/place.ts:
 
-import {
-    playerBoard,
-    computerBoard,
-    Board,
-    Cell,
-} from './boards';
+import { playerBoard, computerBoard, Board, Cell } from "./boards";
 
 import {
-    Ship,
-    Axis,
-    CarrierPlayer,
-    BattleshipPlayer,
-    DestructorPlayer,
-    SubmarinePlayer,
-    PatrolPlayer,
-    CarrierComputer,
-    BattleshipComputer,
-    DestructorComputer,
-    SubmarineComputer,
-    PatrolComputer
-} from './ships';
+  Ship,
+  Axis,
+  CarrierPlayer,
+  BattleshipPlayer,
+  DestructorPlayer,
+  SubmarinePlayer,
+  PatrolPlayer,
+  CarrierComputer,
+  BattleshipComputer,
+  DestructorComputer,
+  SubmarineComputer,
+  PatrolComputer,
+} from "./ships";
 
-// Retorna true si es seguro colocar el barco en una posición determinada
-function canPlaceShip(board: Cell[][], x: number, y: number, shipLength: number, vertical: boolean): boolean {
-    const directions = [
-        [-1, 0], [1, 0], [0, -1], [0, 1],  // N, S, W, E
-        [-1, -1], [-1, 1], [1, -1], [1, 1] // NW, NE, SW, SE
-    ];
+let shipsToPlace = [
+  CarrierPlayer,
+  BattleshipPlayer,
+  DestructorPlayer,
+  SubmarinePlayer,
+  PatrolPlayer,
+];
+let currentShipIndex = 0;
+const defaultOrientation: "horizontal" | "vertical" = "horizontal";
 
-    for (let i = 0; i < shipLength; i++) {
-        const currentX = vertical ? x : x + i;
-        const currentY = vertical ? y + i : y;
+function previewShipPlacement(playerBoardContainer: HTMLElement, event: MouseEvent) {
+  const cell = event.target as HTMLElement;
+  let x: number;
+  let y: number;
 
-        if (currentX < 0 || currentY < 0 || currentX >= 10 || currentY >= 10) {
-            return false; // out of board
-        }
+  if (cell.dataset.x && cell.dataset.y) {
+    x = parseInt(cell.dataset.x, 10);
+    y = parseInt(cell.dataset.y, 10);
 
-        if (board[currentX][currentY].status === 'ship') {
-            return false; // cell already occupied
-        }
+    const ship = shipsToPlace[currentShipIndex];
+    const canPlace = canPlaceShip(
+      playerBoard,
+      x,
+      y,
+      ship.length,
+      defaultOrientation === "vertical"
+    );
 
-        for (const [dx, dy] of directions) {
-            const newX = currentX + dx;
-            const newY = currentY + dy;
-            if (newX >= 0 && newY >= 0 && newX < 10 && newY < 10 && board[newX][newY].status === 'ship') {
-                return false; // adjacent ship found
-            }
-        }
+    // Usar un bucle para iterar sobre las celdas y establecer su color de fondo
+    for (let i = 0; i < ship.length; i++) {
+      const currentX = defaultOrientation === "vertical" ? x : x + i;
+      const currentY = defaultOrientation === "vertical" ? y + i : y;
+      const previewCell = document.querySelector(
+        `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+      );
+      if (previewCell) {
+        previewCell.classList.toggle("green", canPlace);
+        previewCell.classList.toggle("red", !canPlace);
+      }
     }
-
-    // Verificar que no haya barcos adyacentes
-    if (shipLength > 1) {
-        for (const [dx, dy] of directions) {
-            const adjacentX = x + dx;
-            const adjacentY = y + dy;
-            if (
-                adjacentX >= 0 &&
-                adjacentY >= 0 &&
-                adjacentX < 10 &&
-                adjacentY < 10 &&
-                board[adjacentX][adjacentY].status === 'ship'
-            ) {
-                return false; // barco adyacente encontrado
-            }
-        }
-    }
-
-    return true;
+  }
 }
 
+function placeCurrentShip(playerBoardContainer: HTMLElement, event: MouseEvent) {
+    const cell = event.target as HTMLElement;
+    if (cell.dataset.x && cell.dataset.y) {
+        const x = parseInt(cell.dataset.x, 10);
+        const y = parseInt(cell.dataset.y, 10);
+        
+        const ship = shipsToPlace[currentShipIndex];
+        if (canPlaceShip(playerBoard, x, y, ship.length, defaultOrientation === "vertical")) {
+            placeShip(playerBoard, ship);
+            const boundPreviewShipPlacement = previewShipPlacement.bind(null, playerBoardContainer);
+            const boundPlaceCurrentShip = placeCurrentShip.bind(null, playerBoardContainer);
+            playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
+            currentShipIndex++;
+
+            // Si todos los barcos han sido colocados
+            if (currentShipIndex === shipsToPlace.length) {
+                playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
+                playerBoardContainer.removeEventListener("click", boundPlaceCurrentShip);
+            }
+        }
+    }
+}
+
+export function manualPlacement(playerBoardContainer: HTMLElement) {
+  const boundPreviewShipPlacement = previewShipPlacement.bind(
+    null,
+    playerBoardContainer
+  );
+  const boundPlaceCurrentShip = placeCurrentShip.bind(
+    null,
+    playerBoardContainer
+  );
+
+  playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
+  playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
+}
+
+// Retorna true si es seguro colocar el barco en una posición determinada
+function canPlaceShip(
+  board: Cell[][],
+  x: number,
+  y: number,
+  shipLength: number,
+  vertical: boolean
+): boolean {
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1], // N, S, W, E
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1], // NW, NE, SW, SE
+  ];
+
+  for (let i = 0; i < shipLength; i++) {
+    const currentX = vertical ? x : x + i;
+    const currentY = vertical ? y + i : y;
+
+    if (currentX < 0 || currentY < 0 || currentX >= 10 || currentY >= 10) {
+      return false; // out of board
+    }
+
+    if (board[currentX][currentY].status === "ship") {
+      return false; // cell already occupied
+    }
+
+    for (const [dx, dy] of directions) {
+      const newX = currentX + dx;
+      const newY = currentY + dy;
+      if (
+        newX >= 0 &&
+        newY >= 0 &&
+        newX < 10 &&
+        newY < 10 &&
+        board[newX][newY].status === "ship"
+      ) {
+        return false; // adjacent ship found
+      }
+    }
+  }
+
+  // Verificar que no haya barcos adyacentes
+  if (shipLength > 1) {
+    for (const [dx, dy] of directions) {
+      const adjacentX = x + dx;
+      const adjacentY = y + dy;
+      if (
+        adjacentX >= 0 &&
+        adjacentY >= 0 &&
+        adjacentX < 10 &&
+        adjacentY < 10 &&
+        board[adjacentX][adjacentY].status === "ship"
+      ) {
+        return false; // barco adyacente encontrado
+      }
+    }
+  }
+
+  return true;
+}
 
 // Coloca el barco en el tablero
 function placeShip(board: Cell[][], ship: Ship): void {
-    let tries = 0;
-    const maxTries = 1000;
+  let tries = 0;
+  const maxTries = 1000;
 
-    while (tries < maxTries) {
-        const x = Math.floor(Math.random() * 10);
-        const y = Math.floor(Math.random() * 10);
-        const vertical = Math.random() < 0.5;
+  while (tries < maxTries) {
+    const x = Math.floor(Math.random() * 10);
+    const y = Math.floor(Math.random() * 10);
+    const vertical = Math.random() < 0.5;
 
-        if (canPlaceShip(board, x, y, ship.length, vertical)) {
-            for (let i = 0; i < ship.length; i++) {
-                const currentX = vertical ? x : x + i;
-                const currentY = vertical ? y + i : y;
-                // Aquí asegúrate de asignar un objeto con las propiedades necesarias
-                board[currentX][currentY] = {
-                    x: currentX,
-                    y: currentY,
-                    status: 'ship',
-                    ship: ship
-                };                
-            }
-            return;
-        }
-
-        tries++;
+    if (canPlaceShip(board, x, y, ship.length, vertical)) {
+      for (let i = 0; i < ship.length; i++) {
+        const currentX = vertical ? x : x + i;
+        const currentY = vertical ? y + i : y;
+        // Aquí asegúrate de asignar un objeto con las propiedades necesarias
+        board[currentX][currentY] = {
+          x: currentX,
+          y: currentY,
+          status: "ship",
+          ship: ship,
+        };
+      }
+      return;
     }
 
-    throw new Error("Unable to place ship after many attempts");
+    tries++;
+  }
+
+  throw new Error("Unable to place ship after many attempts");
 }
-
-
 
 function randomPlacement(board: Board, ship: Ship): void {
-    let x: number, y: number;
-    do {
-        const orientations: Axis[] = ['horizontal', 'vertical'];
-        ship.axis = orientations[Math.floor(Math.random() * orientations.length)];
-        x = Math.floor(Math.random() * board.length);
-        y = Math.floor(Math.random() * board.length);
-    } while (!canPlaceShip(board, x, y, ship.length, ship.axis === 'vertical'));
-    placeShip(board, ship);
+  let x: number, y: number;
+  do {
+    const orientations: Axis[] = ["horizontal", "vertical"];
+    ship.axis = orientations[Math.floor(Math.random() * orientations.length)];
+    x = Math.floor(Math.random() * board.length);
+    y = Math.floor(Math.random() * board.length);
+  } while (!canPlaceShip(board, x, y, ship.length, ship.axis === "vertical"));
+  placeShip(board, ship);
 }
 
-
+//////
 
 // Fases de colocación
 function playerPlacement(): void {
-    try {
-        randomPlacement(playerBoard, CarrierPlayer);
-        randomPlacement(playerBoard, BattleshipPlayer);
-        randomPlacement(playerBoard, DestructorPlayer);
-        randomPlacement(playerBoard, SubmarinePlayer);
-        randomPlacement(playerBoard, PatrolPlayer);
-    } catch (error) {
-        resetBoard(playerBoard);
-        playerPlacement();
-    }
+  try {
+    randomPlacement(playerBoard, CarrierPlayer);
+    randomPlacement(playerBoard, BattleshipPlayer);
+    randomPlacement(playerBoard, DestructorPlayer);
+    randomPlacement(playerBoard, SubmarinePlayer);
+    randomPlacement(playerBoard, PatrolPlayer);
+  } catch (error) {
+    resetBoard(playerBoard);
+    playerPlacement();
+  }
 }
 
 function computerPlacement(): void {
-    try {
-        randomPlacement(computerBoard, CarrierComputer);
-        randomPlacement(computerBoard, BattleshipComputer);
-        randomPlacement(computerBoard, DestructorComputer);
-        randomPlacement(computerBoard, SubmarineComputer);
-        randomPlacement(computerBoard, PatrolComputer);
-    } catch (error) {
-        resetBoard(computerBoard);
-        computerPlacement();
-    }
+  try {
+    randomPlacement(computerBoard, CarrierComputer);
+    randomPlacement(computerBoard, BattleshipComputer);
+    randomPlacement(computerBoard, DestructorComputer);
+    randomPlacement(computerBoard, SubmarineComputer);
+    randomPlacement(computerBoard, PatrolComputer);
+  } catch (error) {
+    resetBoard(computerBoard);
+    computerPlacement();
+  }
 }
 
 function resetBoard(board: Cell[][]): void {
-    for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 10; y++) {
-            board[x][y].status = "empty";
-        }
+  for (let x = 0; x < 10; x++) {
+    for (let y = 0; y < 10; y++) {
+      board[x][y].status = "empty";
     }
+  }
 }
-
-
 
 export { playerPlacement, computerPlacement };
-
-----------------------------------------
-
-src/scripts/ships.ts:
-
-export type Axis = 'horizontal' | 'vertical';
-type Owner = 'playerShip' | 'computerShip';
-
-class Ship {
-    length: number;
-    axis: Axis;
-    owner: Owner;
-
-    constructor(length: number, axis: Axis, owner: Owner) {
-        this.length = length;
-        this.axis = axis;
-        this.owner = owner;
-    }
-}
-
-// Crear 5 instancias básicas de Ship
-// Por defecto, estas instancias serán del jugador. Puedes cambiar el propietario según sea necesario.
-const CarrierPlayer = new Ship(5, 'horizontal', 'playerShip');
-const BattleshipPlayer = new Ship(4, 'horizontal', 'playerShip');
-const DestructorPlayer = new Ship(3, 'horizontal', 'playerShip');
-const SubmarinePlayer = new Ship(3, 'horizontal', 'playerShip');
-const PatrolPlayer = new Ship(2, 'horizontal', 'playerShip');
-
-const CarrierComputer = new Ship(5, 'horizontal', 'computerShip');
-const BattleshipComputer = new Ship(4, 'horizontal', 'computerShip');
-const DestructorComputer = new Ship(3, 'horizontal', 'computerShip');
-const SubmarineComputer = new Ship(3, 'horizontal', 'computerShip');
-const PatrolComputer = new Ship(2, 'horizontal', 'computerShip');
-
-export {
-    Ship,
-    CarrierPlayer,
-    BattleshipPlayer,
-    DestructorPlayer,
-    SubmarinePlayer,
-    PatrolPlayer,
-    CarrierComputer,
-    BattleshipComputer,
-    DestructorComputer,
-    SubmarineComputer,
-    PatrolComputer
-};
 
 ----------------------------------------
 

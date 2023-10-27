@@ -114,6 +114,14 @@ body {
     background-color: blue;
 }
 
+.cell.green {
+    background-color: green !important;
+}
+
+.cell.red {
+    background-color: red !important;
+}
+
 
 
 /* Estilos para cuando la ventana tenga una estrechura menor a 500px */
