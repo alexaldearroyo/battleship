@@ -31,4 +31,4 @@ function createEmptyBoard(size: number): Board {
 const playerBoard: Board = createEmptyBoard(10);
 const computerBoard: Board = createEmptyBoard(10);
 
-export { playerBoard, computerBoard, Board };
+export { playerBoard, computerBoard, Board, Cell };

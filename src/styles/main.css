@@ -34,7 +34,7 @@ body {
     margin: 0;
 }
 
-.startGameButton {
+.startButton {
     padding: 20px 40px;
     border: none;
     border-radius: 15px;
@@ -45,7 +45,7 @@ body {
     color: white;
 }
 
-.startGameButton:hover {
+.startButton:hover {
     background-color: #0056b3;
 }
 

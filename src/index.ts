@@ -1,7 +1,7 @@
 import './styles/main.css';
 import { playerBoard, computerBoard, Board } from './scripts/boards';
 
-const startButton = document.querySelector(".startGameButton") as HTMLElement;
+const startButton = document.querySelector(".startButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
 const mainPage = document.querySelector(".mainPage") as HTMLElement;
 
@@ -53,12 +53,7 @@ function startGame() {
         generateGrid(computerBoard, computerBoardContainer);
     }
 
-    // Create a new div element for the additional content
-    const additionalContent = document.createElement("div");
-    additionalContent.classList.add("labelSpace");
-
     if (mainPage) {
-        mainPage.appendChild(additionalContent); // Add the additional content to the main page
         mainPage.appendChild(boardsSpace);
     }
 }
