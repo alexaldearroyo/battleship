@@ -1,5 +1,6 @@
 import './styles/main.css';
 import { playerBoard, computerBoard, Board } from './scripts/boards';
+import { playerPlacement, computerPlacement } from './scripts/place';
 
 const startButton = document.querySelector(".startButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
@@ -48,6 +49,10 @@ function startGame() {
     boardsSpace.appendChild(playerBoardContainer);
     boardsSpace.appendChild(computerBoardContainer);
 
+    // Llama a las funciones de colocación
+    playerPlacement();
+    computerPlacement();
+
     if (playerBoardContainer && computerBoardContainer) {
         generateGrid(playerBoard, playerBoardContainer);
         generateGrid(computerBoard, computerBoardContainer);
@@ -81,6 +86,7 @@ function generateGrid(board: Board, container: HTMLElement) {
                     break;
                 case "ship":
                     cell.classList.add("ship");
+                    cell.classList.add("blue"); 
                     break;
                 case "miss":
                     cell.classList.add("miss"); // Agregar clase para disparo fallido

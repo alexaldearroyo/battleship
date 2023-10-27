@@ -110,6 +110,10 @@ body {
     color: transparent; /* Hace que el contenido de la celda sea transparente */
 }
 
+.cell.blue {
+    background-color: blue;
+}
+
 
 
 /* Estilos para cuando la ventana tenga una estrechura menor a 500px */
