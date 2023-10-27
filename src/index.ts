@@ -86,7 +86,9 @@ function generateGrid(board: Board, container: HTMLElement) {
                     break;
                 case "ship":
                     cell.classList.add("ship");
-                    cell.classList.add("blue"); 
+                    if (container.classList.contains("playerBoardContainer")) { // Sólo aplica el color azul si es el tablero del jugador
+                        cell.classList.add("blue");
+                    }
                     break;
                 case "miss":
                     cell.classList.add("miss"); // Agregar clase para disparo fallido
