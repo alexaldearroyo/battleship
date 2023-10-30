@@ -127,11 +127,12 @@ describe("Ship Placement", () => {
   test("Manual placement should occupy cells with ships", () => {
     // Crear un contenedor simulado para el tablero del jugador
     const playerBoardContainer = document.createElement("div");
+    const playerBoardBelow = document.createElement("div");
 
     // Simular la colocación de un barco manualmente
     // Aquí, vamos a simular un click en una celda particular.
     // Por simplicidad, estamos suponiendo que el primer barco se colocará en la celda (0,0) horizontalmente.
-    manualPlacement(playerBoardContainer);
+    manualPlacement(playerBoardContainer, playerBoardBelow);
 
     const simulatedClickEvent = new MouseEvent("click", {
       bubbles: true,

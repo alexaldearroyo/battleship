@@ -23,9 +23,9 @@ let shipsToPlace = [
   PatrolPlayer,
 ];
 let currentShipIndex = 0;
-const defaultOrientation: "horizontal" | "vertical" = "horizontal";
+export let defaultOrientation: "horizontal" | "vertical" = "horizontal";
 
-function previewShipPlacement(
+export function previewShipPlacement(
   playerBoardContainer: HTMLElement,
   event: MouseEvent
 ) {
@@ -40,6 +40,9 @@ function previewShipPlacement(
   }
 
   const cell = event.target as HTMLElement;
+  if (!cell || !cell.dataset || !cell.dataset.x || !cell.dataset.y) {
+    return;
+  }
   let x: number;
   let y: number;
 
@@ -132,7 +135,9 @@ function placeCurrentShip(
         );
 
         // Oculta el botón changeDirButton
-        const changeDirButton = document.querySelector(".changeDirButton") as HTMLElement;
+        const changeDirButton = document.querySelector(
+          ".changeDirButton"
+        ) as HTMLElement;
         if (changeDirButton) {
           changeDirButton.style.display = "none";
         }
@@ -141,7 +146,10 @@ function placeCurrentShip(
   }
 }
 
-export function manualPlacement(playerBoardContainer: HTMLElement) {
+export function manualPlacement(
+  playerBoardContainer: HTMLElement,
+  playerBoardBelow: HTMLElement
+) {
   const boundPreviewShipPlacement = previewShipPlacement.bind(
     null,
     playerBoardContainer
@@ -153,6 +161,29 @@ export function manualPlacement(playerBoardContainer: HTMLElement) {
 
   playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
   playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
+
+  // Crea el botón de cambio de dirección y lo adjunta a playerBoardBelow
+  const changeDirButton = document.createElement("button");
+  changeDirButton.classList.add("fa", "fa-refresh");
+  changeDirButton.classList.add("changeDirButton");
+  playerBoardBelow.appendChild(changeDirButton);
+
+  if (changeDirButton) {
+    changeDirButton.addEventListener("click", () => {
+      console.log("Botón presionado"); // Agrega esta línea
+
+      // Cambiar la orientación por defecto
+      if (defaultOrientation === "horizontal") {
+        defaultOrientation = "vertical";
+      } else {
+        defaultOrientation = "horizontal";
+      }
+
+      // Actualizar la vista previa del barco en el tablero
+      const mockEvent = new MouseEvent("mouseover");
+      previewShipPlacement(playerBoardContainer, mockEvent);
+    });
+  }
 }
 
 // Retorna true si es seguro colocar el barco en una posición determinada
@@ -331,3 +362,5 @@ function resetBoard(board: Cell[][]): void {
 }
 
 export { playerPlacement, computerPlacement };
+
+// TEST4

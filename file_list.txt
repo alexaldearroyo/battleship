@@ -55,6 +55,7 @@ function startGame() {
   boardsSpace.appendChild(playerBoardContainer);
   boardsSpace.appendChild(computerBoardContainer);
 
+  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
   manualPlacement(playerBoardContainer);
   computerPlacement(); // <-- Mover esta línea hacia arriba
 
@@ -67,10 +68,6 @@ function startGame() {
   const playerBoardBelow = document.createElement("div");
   playerBoardBelow.classList.add("playerBoardBelow");
   playerBoardContainer.appendChild(playerBoardBelow);
-
-  // Llama a las funciones de colocación
-  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
-  // manualPlacement(playerBoardContainer);
 
   // Crea el botón de cambio de dirección y lo adjunta a playerBoardBelow
   const changeDirButton = document.createElement("button");
@@ -172,9 +169,9 @@ let shipsToPlace = [
   PatrolPlayer,
 ];
 let currentShipIndex = 0;
-const defaultOrientation: "horizontal" | "vertical" = "horizontal";
+let defaultOrientation: "horizontal" | "vertical" = "horizontal";
 
-function previewShipPlacement(
+export function previewShipPlacement(
   playerBoardContainer: HTMLElement,
   event: MouseEvent
 ) {
@@ -302,6 +299,24 @@ export function manualPlacement(playerBoardContainer: HTMLElement) {
 
   playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
   playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
+
+  const changeDirButton = document.querySelector(".changeDirButton") as HTMLElement;
+  if (changeDirButton) {
+    changeDirButton.addEventListener("click", () => {
+      console.log("Botón presionado");  // Agrega esta línea
+
+          // Cambiar la orientación por defecto
+          if (defaultOrientation === "horizontal") {
+              defaultOrientation = "vertical";
+          } else {
+              defaultOrientation = "horizontal";
+          }
+
+          // Actualizar la vista previa del barco en el tablero
+          const mockEvent = new MouseEvent("mouseover");
+          previewShipPlacement(playerBoardContainer, mockEvent);
+      });
+  }
 }
 
 // Retorna true si es seguro colocar el barco en una posición determinada
@@ -481,5 +496,6 @@ function resetBoard(board: Cell[][]): void {
 
 export { playerPlacement, computerPlacement };
 
+// TEST4
 ----------------------------------------
 

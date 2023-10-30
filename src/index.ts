@@ -53,35 +53,24 @@ function startGame() {
   boardsSpace.appendChild(playerBoardContainer);
   boardsSpace.appendChild(computerBoardContainer);
 
-  manualPlacement(playerBoardContainer);
-  computerPlacement(); // <-- Mover esta línea hacia arriba
-
   if (playerBoardContainer && computerBoardContainer) {
     generateGrid(playerBoard, playerBoardContainer);
     generateGrid(computerBoard, computerBoardContainer);
   }
-
-  // Crea el div playerBoardBelow y lo adjunta a playerBoardContainer
-  const playerBoardBelow = document.createElement("div");
-  playerBoardBelow.classList.add("playerBoardBelow");
-  playerBoardContainer.appendChild(playerBoardBelow);
-
-  // Llama a las funciones de colocación
-  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
-  // manualPlacement(playerBoardContainer);
-
-  // Crea el botón de cambio de dirección y lo adjunta a playerBoardBelow
-  const changeDirButton = document.createElement("button");
-  changeDirButton.classList.add("fa", "fa-refresh");
-  changeDirButton.classList.add("changeDirButton");
-  playerBoardBelow.appendChild(changeDirButton);
 
   // Crea el div computerBoardBelow (si lo necesitas en el futuro)
   const computerBoardBelow = document.createElement("div");
   computerBoardBelow.classList.add("computerBoardBelow");
   computerBoardContainer.appendChild(computerBoardBelow);
 
-  // computerPlacement();
+  computerPlacement(); // <-- Mover esta línea hacia arriba
+
+  // Crea el div playerBoardBelow y lo adjunta a playerBoardContainer
+  const playerBoardBelow = document.createElement("div");
+  playerBoardBelow.classList.add("playerBoardBelow");
+  playerBoardContainer.appendChild(playerBoardBelow);
+
+  manualPlacement(playerBoardContainer, playerBoardBelow);
 
   if (mainPage) {
     mainPage.appendChild(boardsSpace);
