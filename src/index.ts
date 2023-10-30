@@ -53,6 +53,8 @@ function startGame() {
   boardsSpace.appendChild(playerBoardContainer);
   boardsSpace.appendChild(computerBoardContainer);
 
+  computerPlacement();
+
   if (playerBoardContainer && computerBoardContainer) {
     generateGrid(playerBoard, playerBoardContainer);
     generateGrid(computerBoard, computerBoardContainer);
@@ -63,7 +65,6 @@ function startGame() {
   computerBoardBelow.classList.add("computerBoardBelow");
   computerBoardContainer.appendChild(computerBoardBelow);
 
-  computerPlacement(); // <-- Mover esta línea hacia arriba
 
   // Crea el div playerBoardBelow y lo adjunta a playerBoardContainer
   const playerBoardBelow = document.createElement("div");
