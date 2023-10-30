@@ -6,7 +6,6 @@ import {
   computerPlacement,
 } from "./scripts/place";
 
-
 const startButton = document.querySelector(".startButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
 const mainPage = document.querySelector(".mainPage") as HTMLElement;
@@ -54,15 +53,35 @@ function startGame() {
   boardsSpace.appendChild(playerBoardContainer);
   boardsSpace.appendChild(computerBoardContainer);
 
-  // Llama a las funciones de colocación
-  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
   manualPlacement(playerBoardContainer);
-  computerPlacement();
+  computerPlacement(); // <-- Mover esta línea hacia arriba
 
   if (playerBoardContainer && computerBoardContainer) {
     generateGrid(playerBoard, playerBoardContainer);
     generateGrid(computerBoard, computerBoardContainer);
   }
+
+  // Crea el div playerBoardBelow y lo adjunta a playerBoardContainer
+  const playerBoardBelow = document.createElement("div");
+  playerBoardBelow.classList.add("playerBoardBelow");
+  playerBoardContainer.appendChild(playerBoardBelow);
+
+  // Llama a las funciones de colocación
+  // playerPlacement(); // Comentada esta línea para desactivar la colocación aleatoria
+  // manualPlacement(playerBoardContainer);
+
+  // Crea el botón de cambio de dirección y lo adjunta a playerBoardBelow
+  const changeDirButton = document.createElement("button");
+  changeDirButton.classList.add("fa", "fa-refresh");
+  changeDirButton.classList.add("changeDirButton");
+  playerBoardBelow.appendChild(changeDirButton);
+
+  // Crea el div computerBoardBelow (si lo necesitas en el futuro)
+  const computerBoardBelow = document.createElement("div");
+  computerBoardBelow.classList.add("computerBoardBelow");
+  computerBoardContainer.appendChild(computerBoardBelow);
+
+  // computerPlacement();
 
   if (mainPage) {
     mainPage.appendChild(boardsSpace);
@@ -92,10 +111,12 @@ function generateGrid(board: Board, container: HTMLElement) {
           break;
         case "ship":
           cell.classList.add("ship");
-          if (container.classList.contains("playerBoardContainer")) {
-            // Sólo aplica el color azul si es el tablero del jugador
+
+          // solo para pruebas si es el tablero del ordenador
+          if (container.classList.contains("computerBoardContainer")) {
             cell.classList.add("blue");
           }
+
           break;
         case "miss":
           cell.classList.add("miss"); // Agregar clase para disparo fallido

@@ -25,10 +25,29 @@ let shipsToPlace = [
 let currentShipIndex = 0;
 const defaultOrientation: "horizontal" | "vertical" = "horizontal";
 
-function previewShipPlacement(playerBoardContainer: HTMLElement, event: MouseEvent) {
+function previewShipPlacement(
+  playerBoardContainer: HTMLElement,
+  event: MouseEvent
+) {
+  // Eliminar la clase CSS "green" del último barco colocado
+  const lastShip = playerBoardContainer.querySelector(".green");
+  if (lastShip) {
+    lastShip.classList.remove("green");
+  }
+
+  if (currentShipIndex >= shipsToPlace.length) {
+    return; // Exit early if all ships have been placed
+  }
+
   const cell = event.target as HTMLElement;
   let x: number;
   let y: number;
+
+  // Reset all cells to their original color
+  const allCells = playerBoardContainer.querySelectorAll(".cell");
+  allCells.forEach((cell) => {
+    cell.classList.remove("green", "red");
+  });
 
   if (cell.dataset.x && cell.dataset.y) {
     x = parseInt(cell.dataset.x, 10);
@@ -40,13 +59,13 @@ function previewShipPlacement(playerBoardContainer: HTMLElement, event: MouseEve
       x,
       y,
       ship.length,
-      defaultOrientation === "vertical"
+      defaultOrientation === "horizontal"
     );
 
-    // Usar un bucle para iterar sobre las celdas y establecer su color de fondo
+    // Use a loop to iterate over the cells and set their background color
     for (let i = 0; i < ship.length; i++) {
-      const currentX = defaultOrientation === "vertical" ? x : x + i;
-      const currentY = defaultOrientation === "vertical" ? y + i : y;
+      const currentX = defaultOrientation === "horizontal" ? x : x + i;
+      const currentY = defaultOrientation === "horizontal" ? y + i : y;
       const previewCell = document.querySelector(
         `.cell[data-x="${currentX}"][data-y="${currentY}"]`
       );
@@ -58,31 +77,69 @@ function previewShipPlacement(playerBoardContainer: HTMLElement, event: MouseEve
   }
 }
 
-function placeCurrentShip(playerBoardContainer: HTMLElement, event: MouseEvent) {
-    const cell = event.target as HTMLElement;
-    if (cell.dataset.x && cell.dataset.y) {
-        const x = parseInt(cell.dataset.x, 10);
-        const y = parseInt(cell.dataset.y, 10);
-        
-        const ship = shipsToPlace[currentShipIndex];
-        const vertical = defaultOrientation === "vertical";
-        
-        if (canPlaceShip(playerBoard, x, y, ship.length, vertical)) {
-            placeShip(playerBoard, ship, x, y, vertical); // Aquí pasamos todos los argumentos necesarios
-            const boundPreviewShipPlacement = previewShipPlacement.bind(null, playerBoardContainer);
-            const boundPlaceCurrentShip = placeCurrentShip.bind(null, playerBoardContainer);
-            playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
-            currentShipIndex++;
+function placeCurrentShip(
+  playerBoardContainer: HTMLElement,
+  event: MouseEvent
+) {
+  const cell = event.target as HTMLElement;
+  if (
+    cell.dataset.x &&
+    cell.dataset.y &&
+    currentShipIndex < shipsToPlace.length
+  ) {
+    const x = parseInt(cell.dataset.x, 10);
+    const y = parseInt(cell.dataset.y, 10);
 
-            // Si todos los barcos han sido colocados
-            if (currentShipIndex === shipsToPlace.length) {
-                playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
-                playerBoardContainer.removeEventListener("click", boundPlaceCurrentShip);
-            }
+    const ship = shipsToPlace[currentShipIndex];
+    const horizontal = defaultOrientation === "horizontal";
+
+    if (canPlaceShip(playerBoard, x, y, ship.length, horizontal)) {
+      placeShip(playerBoard, ship, x, y, horizontal);
+      for (let i = 0; i < ship.length; i++) {
+        const currentX = horizontal ? x : x + i;
+        const currentY = horizontal ? y + i : y;
+        const shipCell = document.querySelector(
+          `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+        ) as HTMLElement;
+        if (shipCell) {
+          shipCell.style.backgroundColor = "blue";
         }
-    }
-}
+      }
 
+      const boundPreviewShipPlacement = previewShipPlacement.bind(
+        null,
+        playerBoardContainer
+      );
+      const boundPlaceCurrentShip = placeCurrentShip.bind(
+        null,
+        playerBoardContainer
+      );
+      playerBoardContainer.removeEventListener(
+        "mouseover",
+        boundPreviewShipPlacement
+      );
+      currentShipIndex++;
+
+      // Si todos los barcos han sido colocados
+      if (currentShipIndex === shipsToPlace.length) {
+        playerBoardContainer.removeEventListener(
+          "mouseover",
+          boundPreviewShipPlacement
+        );
+        playerBoardContainer.removeEventListener(
+          "click",
+          boundPlaceCurrentShip
+        );
+
+        // Oculta el botón changeDirButton
+        const changeDirButton = document.querySelector(".changeDirButton") as HTMLElement;
+        if (changeDirButton) {
+          changeDirButton.style.display = "none";
+        }
+      }
+    }
+  }
+}
 
 export function manualPlacement(playerBoardContainer: HTMLElement) {
   const boundPreviewShipPlacement = previewShipPlacement.bind(
@@ -104,7 +161,7 @@ function canPlaceShip(
   x: number,
   y: number,
   shipLength: number,
-  vertical: boolean
+  horizontal: boolean
 ): boolean {
   const directions = [
     [-1, 0],
@@ -118,8 +175,8 @@ function canPlaceShip(
   ];
 
   for (let i = 0; i < shipLength; i++) {
-    const currentX = vertical ? x : x + i;
-    const currentY = vertical ? y + i : y;
+    const currentX = horizontal ? x : x + i;
+    const currentY = horizontal ? y + i : y;
 
     if (currentX < 0 || currentY < 0 || currentX >= 10 || currentY >= 10) {
       return false; // out of board
@@ -165,60 +222,94 @@ function canPlaceShip(
 }
 
 // Coloca el barco en el tablero
-function placeShip(board: Cell[][], ship: Ship, x: number, y: number, vertical: boolean): void {
-    for (let i = 0; i < ship.length; i++) {
-        const currentX = vertical ? x : x + i;
-        const currentY = vertical ? y + i : y;
-        board[currentX][currentY] = {
-            x: currentX,
-            y: currentY,
-            status: "ship",
-            ship: ship,
-        };
-    }
-}
-
-function randomPlacement(board: Board, ship: Ship): void {
-    let x: number, y: number;
-    let tries = 0;
-    const maxTries = 1000;
-    let placed = false;
-
-    while (tries < maxTries && !placed) {
-        const orientations: Axis[] = ["horizontal", "vertical"];
-        ship.axis = orientations[Math.floor(Math.random() * orientations.length)];
-        x = Math.floor(Math.random() * board.length);
-        y = Math.floor(Math.random() * board.length);
-
-        if (canPlaceShip(board, x, y, ship.length, ship.axis === "vertical")) {
-            placeShip(board, ship, x, y, ship.axis === "vertical");
-            placed = true;
-        }
-        tries++;
-    }
-
-    if (!placed) {
-        throw new Error("Unable to place ship after many attempts");
-    }
-}
-
-//////
-
-// Fases de colocación
-function playerPlacement(): void {
-  try {
-    randomPlacement(playerBoard, CarrierPlayer);
-    randomPlacement(playerBoard, BattleshipPlayer);
-    randomPlacement(playerBoard, DestructorPlayer);
-    randomPlacement(playerBoard, SubmarinePlayer);
-    randomPlacement(playerBoard, PatrolPlayer);
-  } catch (error) {
-    resetBoard(playerBoard);
-    playerPlacement();
+function placeShip(
+  board: Cell[][],
+  ship: Ship,
+  x: number,
+  y: number,
+  vertical: boolean
+): void {
+  for (let i = 0; i < ship.length; i++) {
+    const currentX = vertical ? x : x + i;
+    const currentY = vertical ? y + i : y;
+    board[currentX][currentY] = {
+      x: currentX,
+      y: currentY,
+      status: "ship",
+      ship: ship,
+    };
   }
 }
 
-function computerPlacement(): void {
+function randomPlacement(board: Board, ship: Ship): void {
+  let x: number, y: number;
+  let tries = 0;
+  const maxTries = 1000;
+  let placed = false;
+
+  // 1. Genera todas las posiciones posibles en el tablero para la orientación dada
+  let possiblePositions: { x: number; y: number; vertical: boolean }[] = [];
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board[i].length; j++) {
+      possiblePositions.push({ x: i, y: j, vertical: true });
+      possiblePositions.push({ x: i, y: j, vertical: false });
+    }
+  }
+
+  // 2. Baraja (shuffle) estas posiciones
+  possiblePositions = possiblePositions.sort(() => Math.random() - 0.5);
+
+  // 3. Prueba colocar el barco en cada posición, en el orden barajado
+  for (const position of possiblePositions) {
+    x = position.x;
+    y = position.y;
+    ship.axis = position.vertical ? "vertical" : "horizontal";
+    if (canPlaceShip(board, x, y, ship.length, ship.axis === "vertical")) {
+      placeShip(board, ship, x, y, ship.axis === "vertical");
+      placed = true;
+      break;
+    }
+    tries++;
+    if (tries >= maxTries) {
+      break;
+    }
+  }
+
+  if (!placed) {
+    throw new Error("Unable to place ship after many attempts");
+  }
+}
+
+function playerPlacement(attempts: number = 0): void {
+  if (attempts >= 10) {
+    throw new Error("Unable to place all player ships after 10 attempts.");
+  }
+
+  // Ordena los barcos por tamaño antes de intentar colocarlos
+  const ships = [
+    CarrierPlayer,
+    BattleshipPlayer,
+    DestructorPlayer,
+    SubmarinePlayer,
+    PatrolPlayer,
+  ];
+  ships.sort((a, b) => b.length - a.length);
+
+  try {
+    for (const ship of ships) {
+      randomPlacement(playerBoard, ship);
+    }
+  } catch (error) {
+    resetBoard(playerBoard);
+    playerPlacement(attempts + 1);
+  }
+}
+
+function computerPlacement(attempts: number = 0): void {
+  if (attempts >= 10) {
+    throw new Error("Unable to place all computer ships after 10 attempts.");
+  }
+
   try {
     randomPlacement(computerBoard, CarrierComputer);
     randomPlacement(computerBoard, BattleshipComputer);
@@ -227,7 +318,7 @@ function computerPlacement(): void {
     randomPlacement(computerBoard, PatrolComputer);
   } catch (error) {
     resetBoard(computerBoard);
-    computerPlacement();
+    computerPlacement(attempts + 1);
   }
 }
 
