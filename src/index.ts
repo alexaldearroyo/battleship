@@ -130,3 +130,5 @@ function generateGrid(board: Board, container: HTMLElement) {
 
   container.appendChild(cellContainer); // Agrega el contenedor de celdas al contenedor principal
 }
+
+

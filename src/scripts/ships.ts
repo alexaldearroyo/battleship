@@ -5,16 +5,33 @@ class Ship {
     length: number;
     axis: Axis;
     owner: Owner;
+    hits: number;
+    state: "floating" | "sunk";
 
     constructor(length: number, axis: Axis, owner: Owner) {
         this.length = length;
         this.axis = axis;
         this.owner = owner;
+        this.hits = 0;
+        this.state = "floating";
+    }
+
+    addHit(): void {
+        if (this.state === "sunk") {
+            return;  // No incrementa hits si el barco ya está hundido
+        }
+        
+        this.hits += 1;
+        
+        if (this.hits === this.length) {
+            this.state = "sunk";
+        }
     }
 }
 
+
+
 // Crear 5 instancias básicas de Ship
-// Por defecto, estas instancias serán del jugador. Puedes cambiar el propietario según sea necesario.
 const CarrierPlayer = new Ship(5, 'horizontal', 'playerShip');
 const BattleshipPlayer = new Ship(4, 'horizontal', 'playerShip');
 const DestructorPlayer = new Ship(3, 'horizontal', 'playerShip');
