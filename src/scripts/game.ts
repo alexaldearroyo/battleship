@@ -9,6 +9,8 @@ class Game {
     playerBoard: Cell[][];
     computerBoard: Cell[][];
     currentTurn: "playerTurn" | "computerTurn";
+    playerBoatsSunk: number = 0;
+    computerBoatsSunk: number = 0;
     
     constructor() {
         this.playerBoard = Array(10).fill(null).map(() => Array(10).fill(null).map(() => ({ state: "empty" })));
@@ -25,9 +27,14 @@ class Game {
         } else if (cell.state === "ship") {
             cell.state = "hit";
             cell.ship?.addHit();
+            if (cell.ship?.state === "sunk") {
+                this.computerBoatsSunk++;
+                this.checkWinner();
+            }
             this.currentTurn = "computerTurn";
         } 
     }
+    
 
     computerTurn() {
         let row: number;
@@ -53,9 +60,25 @@ class Game {
         } else if (cell.state === "ship") {
             cell.state = "hit";
             cell.ship?.addHit();
+            if (cell.ship?.state === "sunk") {
+                this.playerBoatsSunk++;
+                this.checkWinner();
+            }
             this.currentTurn = "playerTurn";
         }
     }
+
+
+    checkWinner() {
+        if (this.playerBoatsSunk === 5) {
+            console.log("Computer Wins!");
+            // Puedes agregar aquí cualquier otra lógica que necesites cuando el computador gane.
+        } else if (this.computerBoatsSunk === 5) {
+            console.log("Player Wins!");
+            // Puedes agregar aquí cualquier otra lógica que necesites cuando el jugador gane.
+        }
+    }
+    
     
 }
 

@@ -59,7 +59,7 @@ describe("Game class", () => {
     });
   });
 
-describe("computerTurn", () => {
+  describe("computerTurn", () => {
     it("sinks the ship when hits equals ship length and prevents further hits", () => {
       const testShip = new Ship(2, "horizontal", "playerShip");
       game.playerBoard[0][4].state = "ship";
@@ -73,9 +73,9 @@ describe("computerTurn", () => {
 
       const randomValues = [0.0, 0.45, 0.0, 0.55];
       let randomIndex = 0;
-      
+
       jest.spyOn(Math, "random").mockImplementation(() => {
-          return randomValues[randomIndex++ % randomValues.length];
+        return randomValues[randomIndex++ % randomValues.length];
       });
 
       const addHitSpy = jest.spyOn(testShip, "addHit");
@@ -85,6 +85,8 @@ describe("computerTurn", () => {
       game.computerTurn();
       expect(testShip.hits).toBe(2);
       expect(testShip.state).toBe("sunk");
+      game.playerTurn(0, 5);
+      expect(game.playerBoatsSunk).toBe(1);
 
       jest.restoreAllMocks();
 
@@ -92,8 +94,25 @@ describe("computerTurn", () => {
       expect(testShip.hits).toBe(2);
       expect(addHitSpy).toHaveBeenCalledTimes(2);
     });
-});
+ 
+  });
+  describe("checkWinner", () => {
+    it("declares computer as winner when playerBoatsSunk == 5", () => {
+      game.playerBoatsSunk = 5;
+      const consoleSpy = jest.spyOn(console, "log");
+      game.checkWinner();
+      expect(consoleSpy).toHaveBeenCalledWith("Computer Wins!");
+      consoleSpy.mockRestore();
+    });
 
+    it("declares player as winner when computerBoatsSunk == 5", () => {
+      game.computerBoatsSunk = 5;
+      const consoleSpy = jest.spyOn(console, "log");
+      game.checkWinner();
+      expect(consoleSpy).toHaveBeenCalledWith("Player Wins!");
+      consoleSpy.mockRestore();
+    });
+  });
 });
 
 // TEST GAME
