@@ -62,7 +62,7 @@ body {
 }
 
 .boardsSpace {
-    flex-grow: 1;
+    /* flex-grow: 1; */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -89,6 +89,7 @@ body {
     margin: 0 2.5vw;
     position: relative; /* Establece posición relativa para que los elementos de etiqueta sean relativos a este contenedor */
     margin-top: 40px; /* Aumenta el espacio entre el título y el tablero */
+    
 
 }
 
@@ -126,6 +127,22 @@ body {
     background-color: red !important;
     cursor: default;
 }
+
+.cell.hit {
+    background-color: red !important;
+    cursor: default;
+}
+
+.cell.miss {
+    background-color: grey !important;
+    color: black; /* Esto hará que el texto "X" sea negro */
+    cursor: default;
+}
+
+.cell.empty, .cell.ship {
+    cursor: pointer;
+}
+
 
 .playerBoardBelow, .computerBoardBelow {
     height: 125px; /* O cualquier altura que consideres apropiada */

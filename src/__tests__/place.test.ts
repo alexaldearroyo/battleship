@@ -23,7 +23,7 @@ import {
 function resetBoard(board: Cell[][]): void {
   for (let x = 0; x < 10; x++) {
     for (let y = 0; y < 10; y++) {
-      board[x][y].status = "empty";
+      board[x][y].state = "empty";
       board[x][y].ship = undefined; // Establecer ship como undefined
     }
   }
@@ -128,12 +128,17 @@ describe("Ship Placement", () => {
     // Crear un contenedor simulado para el tablero del jugador
     const playerBoardContainer = document.createElement("div");
     const playerBoardBelow = document.createElement("div");
+    const changeDirButton = document.createElement("button");
+    changeDirButton.classList.add("fa", "fa-refresh");
+    changeDirButton.classList.add("changeDirButton");
+    playerBoardBelow.appendChild(changeDirButton);
+  
 
-    // Simular la colocación de un barco manualmente
-    // Aquí, vamos a simular un click en una celda particular.
-    // Por simplicidad, estamos suponiendo que el primer barco se colocará en la celda (0,0) horizontalmente.
-    manualPlacement(playerBoardContainer, playerBoardBelow);
-
+    manualPlacement(playerBoardContainer, playerBoardBelow, changeDirButton, () => {
+      // Aquí puedes incluir lo que debe suceder después de que todos los barcos se coloquen,
+      // por ahora, lo dejamos vacío ya que es solo una simulación.
+    });
+  
     const simulatedClickEvent = new MouseEvent("click", {
       bubbles: true,
       cancelable: true,
@@ -147,7 +152,8 @@ describe("Ship Placement", () => {
     playerBoardContainer.appendChild(cell);
     cell.dispatchEvent(simulatedClickEvent);
 
-    // Verificar si la celda (0,0) tiene un barco después de la simulación
-    expect(playerBoard[0][0].status).toBe("ship");
+    expect(playerBoard[0][0].state).toBe("ship");
   });
+
+
 });

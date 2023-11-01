@@ -1,87 +1,116 @@
-import { Ship } from './ships';
-
-interface Cell {
-    state: "empty" | "ship" | "hit" | "miss";
-    ship?: Ship;
-}
+import { Ship } from "./ships";
+import { Cell } from "./boards";
 
 class Game {
-    playerBoard: Cell[][];
-    computerBoard: Cell[][];
-    currentTurn: "playerTurn" | "computerTurn";
-    playerBoatsSunk: number = 0;
-    computerBoatsSunk: number = 0;
-    
-    constructor() {
-        this.playerBoard = Array(10).fill(null).map(() => Array(10).fill(null).map(() => ({ state: "empty" })));
-        this.computerBoard = Array(10).fill(null).map(() => Array(10).fill(null).map(() => ({ state: "empty" })));
-        this.currentTurn = "playerTurn";
-    }
-    
-    
-    playerTurn(row: number, col: number) {
-        const cell = this.computerBoard[row][col];
-        if (cell.state === "empty") {
-            cell.state = "miss";
-            this.currentTurn = "computerTurn";
-        } else if (cell.state === "ship") {
-            cell.state = "hit";
-            cell.ship?.addHit();
-            if (cell.ship?.state === "sunk") {
-                this.computerBoatsSunk++;
-                this.checkWinner();
-            }
-            this.currentTurn = "computerTurn";
-        } 
-    }
-    
+  playerBoard: Cell[][];
+  computerBoard: Cell[][];
+  currentTurn: "playerTurn" | "computerTurn";
+  playerBoatsSunk: number = 0;
+  computerBoatsSunk: number = 0;
 
-    computerTurn() {
-        let row: number;
-        let col: number;
-        let cell: Cell;
-    
-        // Añade estas líneas para controlar el número de intentos
+  constructor(playerBoard: Cell[][], computerBoard: Cell[][]) {
+    this.playerBoard = playerBoard;
+    this.computerBoard = computerBoard;
+    this.currentTurn = "playerTurn";
+  }
+
+  playerTurn(row: number = 0, col: number = 0) {
+    const cell = this.computerBoard[row][col];
+    console.log(
+      `playerTurn - Row: ${row}, Col: ${col}, Estado inicial de la celda: ${cell.state}`
+    );
+    if (cell.state === "empty") {
+      cell.state = "miss";
+      this.currentTurn = "computerTurn";
+    } else if (cell.state === "ship") {
+      cell.state = "hit";
+      console.log(
+        `Antes de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+      );
+      cell.ship?.addHit();
+      console.log(
+        `Después de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+      );
+      if (cell.ship?.state === "sunk") {
+        this.computerBoatsSunk++;
+        this.checkWinner();
+      }
+      this.currentTurn = "computerTurn";
+    }
+    console.log(`Estado final de la celda: ${cell.state}`);
+  }
+
+  computerTurn(row?: number, col?: number) {
+    let cell: Cell;
+
+    if (row !== undefined && col !== undefined) {
+        // Si las coordenadas son proporcionadas, úsalas
+        cell = this.playerBoard[row][col];
+    } else {
+        // De lo contrario, elige aleatoriamente
         let attempts = 0;
         const maxAttempts = 1000;
-    
+        
         do {
-            // Si superas el número máximo de intentos, lanza un error
-            if (attempts++ > maxAttempts) throw new Error("Too many attempts to find a cell");
+            if (attempts++ > maxAttempts) {
+                console.log("Lanzando error después de demasiados intentos");
+                throw new Error("Too many attempts to find a cell");
+            }
     
             row = Math.floor(Math.random() * 10);
             col = Math.floor(Math.random() * 10);
             cell = this.playerBoard[row][col];
         } while (cell.state === "hit" || cell.state === "miss");
-        
-        if (cell.state === "empty") {
-            cell.state = "miss";
-            this.currentTurn = "playerTurn";
-        } else if (cell.state === "ship") {
-            cell.state = "hit";
-            cell.ship?.addHit();
-            if (cell.ship?.state === "sunk") {
-                this.playerBoatsSunk++;
-                this.checkWinner();
-            }
-            this.currentTurn = "playerTurn";
-        }
     }
 
+    console.log(`Estado inicial de la celda: ${cell.state}`);
 
-    checkWinner() {
-        if (this.playerBoatsSunk === 5) {
-            console.log("Computer Wins!");
-            // Puedes agregar aquí cualquier otra lógica que necesites cuando el computador gane.
-        } else if (this.computerBoatsSunk === 5) {
-            console.log("Player Wins!");
-            // Puedes agregar aquí cualquier otra lógica que necesites cuando el jugador gane.
-        }
+    if (cell.state === "empty") {
+      cell.state = "miss";
+      this.currentTurn = "playerTurn";
+    } else if (cell.state === "ship") {
+      cell.state = "hit";
+      console.log(
+        `Antes de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+      );
+      cell.ship?.addHit();
+      console.log(`Estado final de la celda: ${cell.state}`);
+      console.log(
+        `Después de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+      );
+      if (cell.ship?.state === "sunk") {
+        this.playerBoatsSunk++;
+        this.checkWinner();
+      }
+      this.currentTurn = "playerTurn";
     }
-    
-    
+    console.log(`Estado final de la celda: ${cell.state}`);
+  }
+
+  checkWinner() {
+    if (this.playerBoatsSunk === 5) {
+      console.log("Computer Wins!");
+      showEndGamePopup('computer'); // Asegúrate de que 'computer' es exactamente del tipo esperado
+    } else if (this.computerBoatsSunk === 5) {
+      console.log("Player Wins!");
+      showEndGamePopup('player'); // Asegúrate de que 'player' es exactamente del tipo esperado
+    }
+  }
+  
+
+  endGame(winner: "player" | "computer") {
+    // Aquí puedes emitir un evento o llamar a una función de manejo de fin de juego.
+    showEndGamePopup(winner);
+  }
 }
+
+function showEndGamePopup(winner: 'player' | 'computer'): void {
+    const message = winner === 'player' ? 'Player Wins!' : 'Computer Wins!';
+    alert(message);
+    location.reload(); // Recarga la página
+  }
+  
 
 export { Game };
 
-// TEST GAME 1
+

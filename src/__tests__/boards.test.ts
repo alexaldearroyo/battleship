@@ -14,7 +14,7 @@ describe('Battleship Boards', () => {
     it('should initialize all cells to empty for player board', () => {
         for (let x = 0; x < 10; x++) {
             for (let y = 0; y < 10; y++) {
-                expect(playerBoard[x][y].status).toBe('empty');
+                expect(playerBoard[x][y].state).toBe('empty');
             }
         }
     });
@@ -22,7 +22,7 @@ describe('Battleship Boards', () => {
     it('should initialize all cells to empty for computer board', () => {
         for (let x = 0; x < 10; x++) {
             for (let y = 0; y < 10; y++) {
-                expect(computerBoard[x][y].status).toBe('empty');
+                expect(computerBoard[x][y].state).toBe('empty');
             }
         }
     });

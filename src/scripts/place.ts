@@ -15,6 +15,9 @@ import {
   PatrolComputer,
 } from "./ships";
 
+import { Game } from "./game";
+import { gameInstance } from "../index";
+
 let shipsToPlace = [
   CarrierPlayer,
   BattleshipPlayer,
@@ -22,171 +25,16 @@ let shipsToPlace = [
   SubmarinePlayer,
   PatrolPlayer,
 ];
+
+let shipsPlaced = 0;
+const totalShips = 5;
 let currentShipIndex = 0;
-export let defaultOrientation: "horizontal" | "vertical" = "horizontal";
+let defaultOrientation: "horizontal" | "vertical" = "horizontal";
+let boundPreviewShipPlacement: ((event?: MouseEvent) => void) | null = null;
+let boundPlaceCurrentShip: ((event: MouseEvent) => void) | null = null;
 
-export function previewShipPlacement(
-  playerBoardContainer: HTMLElement,
-  event: MouseEvent
-) {
-  // Eliminar la clase CSS "green" del último barco colocado
-  const lastShip = playerBoardContainer.querySelector(".green");
-  if (lastShip) {
-    lastShip.classList.remove("green");
-  }
 
-  if (currentShipIndex >= shipsToPlace.length) {
-    return; // Exit early if all ships have been placed
-  }
 
-  const cell = event.target as HTMLElement;
-  if (!cell || !cell.dataset || !cell.dataset.x || !cell.dataset.y) {
-    return;
-  }
-  let x: number;
-  let y: number;
-
-  // Reset all cells to their original color
-  const allCells = playerBoardContainer.querySelectorAll(".cell");
-  allCells.forEach((cell) => {
-    cell.classList.remove("green", "red");
-  });
-
-  if (cell.dataset.x && cell.dataset.y) {
-    x = parseInt(cell.dataset.x, 10);
-    y = parseInt(cell.dataset.y, 10);
-
-    const ship = shipsToPlace[currentShipIndex];
-    const canPlace = canPlaceShip(
-      playerBoard,
-      x,
-      y,
-      ship.length,
-      defaultOrientation === "horizontal"
-    );
-
-    // Use a loop to iterate over the cells and set their background color
-    for (let i = 0; i < ship.length; i++) {
-      const currentX = defaultOrientation === "horizontal" ? x : x + i;
-      const currentY = defaultOrientation === "horizontal" ? y + i : y;
-      const previewCell = document.querySelector(
-        `.cell[data-x="${currentX}"][data-y="${currentY}"]`
-      );
-      if (previewCell) {
-        previewCell.classList.toggle("green", canPlace);
-        previewCell.classList.toggle("red", !canPlace);
-      }
-    }
-  }
-}
-
-function placeCurrentShip(
-  playerBoardContainer: HTMLElement,
-  event: MouseEvent
-) {
-  const cell = event.target as HTMLElement;
-  if (
-    cell.dataset.x &&
-    cell.dataset.y &&
-    currentShipIndex < shipsToPlace.length
-  ) {
-    const x = parseInt(cell.dataset.x, 10);
-    const y = parseInt(cell.dataset.y, 10);
-
-    const ship = shipsToPlace[currentShipIndex];
-    const horizontal = defaultOrientation === "horizontal";
-
-    if (canPlaceShip(playerBoard, x, y, ship.length, horizontal)) {
-      placeShip(playerBoard, ship, x, y, horizontal);
-      for (let i = 0; i < ship.length; i++) {
-        const currentX = horizontal ? x : x + i;
-        const currentY = horizontal ? y + i : y;
-        const shipCell = document.querySelector(
-          `.cell[data-x="${currentX}"][data-y="${currentY}"]`
-        ) as HTMLElement;
-        if (shipCell) {
-          shipCell.style.backgroundColor = "blue";
-        }
-      }
-
-      const boundPreviewShipPlacement = previewShipPlacement.bind(
-        null,
-        playerBoardContainer
-      );
-      const boundPlaceCurrentShip = placeCurrentShip.bind(
-        null,
-        playerBoardContainer
-      );
-      playerBoardContainer.removeEventListener(
-        "mouseover",
-        boundPreviewShipPlacement
-      );
-      currentShipIndex++;
-
-      // Si todos los barcos han sido colocados
-      if (currentShipIndex === shipsToPlace.length) {
-        playerBoardContainer.removeEventListener(
-          "mouseover",
-          boundPreviewShipPlacement
-        );
-        playerBoardContainer.removeEventListener(
-          "click",
-          boundPlaceCurrentShip
-        );
-
-        // Oculta el botón changeDirButton
-        const changeDirButton = document.querySelector(
-          ".changeDirButton"
-        ) as HTMLElement;
-        if (changeDirButton) {
-          changeDirButton.style.display = "none";
-        }
-      }
-    }
-  }
-}
-
-export function manualPlacement(
-  playerBoardContainer: HTMLElement,
-  playerBoardBelow: HTMLElement
-) {
-  const boundPreviewShipPlacement = previewShipPlacement.bind(
-    null,
-    playerBoardContainer
-  );
-  const boundPlaceCurrentShip = placeCurrentShip.bind(
-    null,
-    playerBoardContainer
-  );
-
-  playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
-  playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
-
-  // Crea el botón de cambio de dirección y lo adjunta a playerBoardBelow
-  const changeDirButton = document.createElement("button");
-  changeDirButton.classList.add("fa", "fa-refresh");
-  changeDirButton.classList.add("changeDirButton");
-  playerBoardBelow.appendChild(changeDirButton);
-
-  if (changeDirButton) {
-    changeDirButton.addEventListener("click", () => {
-      console.log("Botón presionado"); // Agrega esta línea
-
-      // Cambiar la orientación por defecto
-      if (defaultOrientation === "horizontal") {
-        defaultOrientation = "vertical";
-      } else {
-        defaultOrientation = "horizontal";
-      }
-
-      // Actualizar la vista previa del barco en el tablero
-      const mockEvent = new MouseEvent("mouseover");
-      previewShipPlacement(playerBoardContainer, mockEvent);
-    });
-  }
-}
-
-// Retorna true si es seguro colocar el barco en una posición determinada
 function canPlaceShip(
   board: Cell[][],
   x: number,
@@ -213,7 +61,7 @@ function canPlaceShip(
       return false; // out of board
     }
 
-    if (board[currentX][currentY].status === "ship") {
+    if (board[currentX][currentY].state === "ship") {
       return false; // cell already occupied
     }
 
@@ -225,14 +73,13 @@ function canPlaceShip(
         newY >= 0 &&
         newX < 10 &&
         newY < 10 &&
-        board[newX][newY].status === "ship"
+        board[newX][newY].state === "ship"
       ) {
         return false; // adjacent ship found
       }
     }
   }
 
-  // Verificar que no haya barcos adyacentes
   if (shipLength > 1) {
     for (const [dx, dy] of directions) {
       const adjacentX = x + dx;
@@ -242,9 +89,9 @@ function canPlaceShip(
         adjacentY >= 0 &&
         adjacentX < 10 &&
         adjacentY < 10 &&
-        board[adjacentX][adjacentY].status === "ship"
+        board[adjacentX][adjacentY].state === "ship"
       ) {
-        return false; // barco adyacente encontrado
+        return false;
       }
     }
   }
@@ -252,7 +99,6 @@ function canPlaceShip(
   return true;
 }
 
-// Coloca el barco en el tablero
 function placeShip(
   board: Cell[][],
   ship: Ship,
@@ -266,11 +112,168 @@ function placeShip(
     board[currentX][currentY] = {
       x: currentX,
       y: currentY,
-      status: "ship",
+      state: "ship",
       ship: ship,
     };
   }
 }
+
+
+function previewShipPlacement(
+  playerBoardContainer: HTMLElement,
+  event?: MouseEvent
+) {
+  if (!event) return; // Salir temprano si no se proporciona evento
+
+  const lastShip = playerBoardContainer.querySelector(".green");
+  if (lastShip) {
+    lastShip.classList.remove("green");
+  }
+
+  if (currentShipIndex >= shipsToPlace.length) {
+    return;
+  }
+
+  const cell = event.target as HTMLElement;
+  if (!cell || !cell.dataset || !cell.dataset.x || !cell.dataset.y) {
+    return;
+  }
+  let x: number;
+  let y: number;
+
+  const allCells = playerBoardContainer.querySelectorAll(".cell");
+  allCells.forEach((cell) => {
+    cell.classList.remove("green", "red");
+  });
+
+  if (cell.dataset.x && cell.dataset.y) {
+    x = parseInt(cell.dataset.x, 10);
+    y = parseInt(cell.dataset.y, 10);
+
+    const ship = shipsToPlace[currentShipIndex];
+    const canPlace = canPlaceShip(
+      playerBoard,
+      x,
+      y,
+      ship.length,
+      defaultOrientation === "horizontal"
+    );
+
+    for (let i = 0; i < ship.length; i++) {
+      const currentX = defaultOrientation === "horizontal" ? x : x + i;
+      const currentY = defaultOrientation === "horizontal" ? y + i : y;
+      const previewCell = document.querySelector(
+        `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+      );
+      if (previewCell) {
+        previewCell.classList.toggle("green", canPlace);
+        previewCell.classList.toggle("red", !canPlace);
+      }
+    }
+  }
+}
+
+function placeCurrentShip(
+  playerBoardContainer: HTMLElement,
+  event: MouseEvent, // Añade este argumento
+  onPlacementComplete: () => void // Añade este argumento
+) {
+
+  const cell = event.target as HTMLElement;
+  if (
+    cell.dataset.x &&
+    cell.dataset.y &&
+    currentShipIndex < shipsToPlace.length
+  ) {
+    const x = parseInt(cell.dataset.x, 10);
+    const y = parseInt(cell.dataset.y, 10);
+
+    const ship = shipsToPlace[currentShipIndex];
+    const horizontal = defaultOrientation === "horizontal";
+
+    if (canPlaceShip(playerBoard, x, y, ship.length, horizontal)) {
+      placeShip(playerBoard, ship, x, y, horizontal);
+
+      for (let i = 0; i < ship.length; i++) {
+        const currentX = horizontal ? x : x + i;
+        const currentY = horizontal ? y + i : y;
+        const shipCell = document.querySelector(
+          `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+        ) as HTMLElement;
+        if (shipCell) {
+          shipCell.style.backgroundColor = "blue";
+          shipCell.classList.remove("green", "red");
+        }
+      }
+
+      currentShipIndex++;
+      shipsPlaced++; 
+
+      if (currentShipIndex === shipsToPlace.length) {
+        if (boundPreviewShipPlacement) {
+          playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
+        }
+        if (boundPlaceCurrentShip) {
+          playerBoardContainer.removeEventListener("click", boundPlaceCurrentShip);
+        }
+    
+
+        boundPreviewShipPlacement = null;
+        boundPlaceCurrentShip = null;
+    
+
+        const changeDirButton = document.querySelector(
+          ".changeDirButton"
+        ) as HTMLElement;
+        if (changeDirButton) {
+          changeDirButton.style.display = "none";
+        }
+
+        onPlacementComplete();
+
+        gameInstance.instance = new Game(playerBoard, computerBoard);
+        if (gameInstance.instance) {
+          gameInstance.instance.playerTurn(x, y);
+      }
+      }
+    }
+  }
+}
+
+export function manualPlacement(
+  playerBoardContainer: HTMLElement,
+  playerBoardBelow: HTMLElement,
+  changeDirButton: HTMLButtonElement,
+  onPlacementComplete: () => void
+) {
+  if (!boundPreviewShipPlacement) {
+    boundPreviewShipPlacement = previewShipPlacement.bind(null, playerBoardContainer);
+  }
+
+  if (!boundPlaceCurrentShip) {
+    boundPlaceCurrentShip = (event: MouseEvent) => {
+      placeCurrentShip(playerBoardContainer, event, onPlacementComplete);
+    };
+  }
+
+  playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
+  playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
+
+  changeDirButton.addEventListener("click", () => {
+      console.log("Botón presionado");
+
+      if (defaultOrientation === "horizontal") {
+        defaultOrientation = "vertical";
+      } else {
+        defaultOrientation = "horizontal";
+      }
+
+      const mockEvent = new MouseEvent("mouseover");
+      previewShipPlacement(playerBoardContainer, mockEvent);
+    });
+  }
+
+
 
 function randomPlacement(board: Board, ship: Ship): void {
   let x: number, y: number;
@@ -278,7 +281,6 @@ function randomPlacement(board: Board, ship: Ship): void {
   const maxTries = 1000;
   let placed = false;
 
-  // 1. Genera todas las posiciones posibles en el tablero para la orientación dada
   let possiblePositions: { x: number; y: number; vertical: boolean }[] = [];
   for (let i = 0; i < board.length; i++) {
     for (let j = 0; j < board[i].length; j++) {
@@ -287,10 +289,8 @@ function randomPlacement(board: Board, ship: Ship): void {
     }
   }
 
-  // 2. Baraja (shuffle) estas posiciones
   possiblePositions = possiblePositions.sort(() => Math.random() - 0.5);
 
-  // 3. Prueba colocar el barco en cada posición, en el orden barajado
   for (const position of possiblePositions) {
     x = position.x;
     y = position.y;
@@ -316,7 +316,6 @@ function playerPlacement(attempts: number = 0): void {
     throw new Error("Unable to place all player ships after 10 attempts.");
   }
 
-  // Ordena los barcos por tamaño antes de intentar colocarlos
   const ships = [
     CarrierPlayer,
     BattleshipPlayer,
@@ -356,11 +355,9 @@ function computerPlacement(attempts: number = 0): void {
 function resetBoard(board: Cell[][]): void {
   for (let x = 0; x < 10; x++) {
     for (let y = 0; y < 10; y++) {
-      board[x][y].status = "empty";
+      board[x][y].state = "empty";
     }
   }
 }
 
-export { playerPlacement, computerPlacement };
-
-// TEST4
+export { playerPlacement, computerPlacement, shipsPlaced, totalShips };

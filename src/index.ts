@@ -4,88 +4,29 @@ import {
   manualPlacement,
   playerPlacement,
   computerPlacement,
+  shipsPlaced,
+  totalShips,
 } from "./scripts/place";
+import { Game } from "./scripts/game";
 
 const startButton = document.querySelector(".startButton") as HTMLElement;
 const title = document.querySelector(".title") as HTMLElement;
 const mainPage = document.querySelector(".mainPage") as HTMLElement;
+const playerBoardContainer = document.createElement("div");
+const computerBoardContainer = document.createElement("div");
 
-function startGame() {
-  // Elimina el botón de START GAME
-  if (startButton) startButton.remove();
+startButton.addEventListener("click", startGame);
 
-  // Envuelve el título en un nuevo div llamado titleSpace
-  const titleSpace = document.createElement("div");
-  titleSpace.classList.add("titleSpace");
-
-  // Modifica el título para hacerlo más pequeño
-  if (title) {
-    title.classList.add("smallTitle");
-    titleSpace.appendChild(title); // Reinserta el título en titleSpace
-  }
-
-  if (mainPage) {
-    mainPage.insertBefore(titleSpace, mainPage.firstChild); // Añade titleSpace al inicio de mainPage
-  }
-
-  // Crea un nuevo div para boardsSpace
-  const boardsSpace = document.createElement("div");
-  boardsSpace.classList.add("boardsSpace");
-
-  // Crea divs para playerBoardContainer y computerBoardContainer
-  const playerBoardContainer = document.createElement("div");
-  playerBoardContainer.classList.add("playerBoardContainer");
-  const computerBoardContainer = document.createElement("div");
-  computerBoardContainer.classList.add("computerBoardContainer");
-
-  // Crea elementos span para los labels de jugador y computadora
-  const playerLabel = document.createElement("span");
-  playerLabel.classList.add("playerLabel");
-  playerLabel.textContent = "Player";
-  playerBoardContainer.appendChild(playerLabel);
-
-  const computerLabel = document.createElement("span");
-  computerLabel.classList.add("computerLabel");
-  computerLabel.textContent = "Computer";
-  computerBoardContainer.appendChild(computerLabel);
-
-  // Añade los tableros a boardsSpace
-  boardsSpace.appendChild(playerBoardContainer);
-  boardsSpace.appendChild(computerBoardContainer);
-
-  computerPlacement();
-
-  if (playerBoardContainer && computerBoardContainer) {
-    generateGrid(playerBoard, playerBoardContainer);
-    generateGrid(computerBoard, computerBoardContainer);
-  }
-
-  // Crea el div computerBoardBelow (si lo necesitas en el futuro)
-  const computerBoardBelow = document.createElement("div");
-  computerBoardBelow.classList.add("computerBoardBelow");
-  computerBoardContainer.appendChild(computerBoardBelow);
-
-
-  // Crea el div playerBoardBelow y lo adjunta a playerBoardContainer
-  const playerBoardBelow = document.createElement("div");
-  playerBoardBelow.classList.add("playerBoardBelow");
-  playerBoardContainer.appendChild(playerBoardBelow);
-
-  manualPlacement(playerBoardContainer, playerBoardBelow);
-
-  if (mainPage) {
-    mainPage.appendChild(boardsSpace);
-  }
+function updateBoardView(board: Board, container: HTMLElement) {
+  container.innerHTML = "";
+  generateGrid(board, container);
 }
 
-if (startButton) {
-  startButton.addEventListener("click", startGame);
-}
+export let gameInstance = { instance: null as Game | null };
 
 function generateGrid(board: Board, container: HTMLElement) {
-  const boardSize = board.length; // Obtiene el tamaño del tablero
+  const boardSize = board.length;
 
-  // Crea un contenedor para las celdas y aplica la clase "board-container"
   const cellContainer = document.createElement("div");
   cellContainer.classList.add("board-container");
 
@@ -93,42 +34,126 @@ function generateGrid(board: Board, container: HTMLElement) {
     for (let y = 0; y < boardSize; y++) {
       const cell = document.createElement("div");
       cell.classList.add("cell");
+      cell.dataset.x = x.toString(); // Asegurando que dataset.x esté definido
+      cell.dataset.y = y.toString(); // Asegurando que dataset.y esté definido
 
-      // Agregar clases CSS según el estado de la celda en el tablero
-      switch (board[x][y].status) {
+      switch (board[x][y].state) {
         case "empty":
           cell.classList.add("empty");
+          cell.textContent = `${x},${y}`; // Muestra las coordenadas en las celdas vacías
           break;
         case "ship":
           cell.classList.add("ship");
-
-          // solo para pruebas si es el tablero del ordenador
-          if (container.classList.contains("computerBoardContainer")) {
-            cell.classList.add("blue");
-          }
-
           break;
         case "miss":
-          cell.classList.add("miss"); // Agregar clase para disparo fallido
+          cell.classList.add("miss");
+          // cell.textContent = "X";
           break;
         case "hit":
-          cell.classList.add("hit"); // Agregar clase para disparo exitoso
+          cell.classList.add("hit");
           break;
         default:
           break;
       }
 
-      // Agregar coordenadas como contenido de la celda
-      cell.textContent = `${x},${y}`;
+      // Agrega un evento de clic a todas las celdas del tablero del ordenador, no solo a las celdas "ship"
+      if (container.classList.contains("computerBoardContainer")) {
+        cell.addEventListener("click", function () {
+          const xStr = cell.dataset.x;
+          const yStr = cell.dataset.y;
+
+          // Asegurarse de que xStr y yStr no sean undefined antes de convertirlos en números
+          if (xStr !== undefined && yStr !== undefined) {
+            const x = parseInt(xStr);
+            const y = parseInt(yStr);
+            if (gameInstance.instance) {
+              gameInstance.instance.playerTurn(x, y);
+              gameInstance.instance.computerTurn();
+              updateBoardView(computerBoard, computerBoardContainer);
+              updateBoardView(playerBoard, playerBoardContainer);
+            }
+          }
+        });
+      }
+
+      // Si es el tablero del jugador, colorea las celdas de los barcos
+      if (container.classList.contains("playerBoardContainer") && board[x][y].state === "ship") {
+        cell.classList.add("blue");
+      }
 
       cellContainer.appendChild(cell);
-
-      cell.dataset.x = x.toString();
-      cell.dataset.y = y.toString();
     }
   }
 
-  container.appendChild(cellContainer); // Agrega el contenedor de celdas al contenedor principal
+  container.appendChild(cellContainer);
+}
+
+
+function startGame() {
+  if (startButton) startButton.remove();
+
+  // Título
+  const titleSpace = document.createElement("div");
+  titleSpace.classList.add("titleSpace");
+
+  title.classList.add("smallTitle");
+  titleSpace.appendChild(title);
+
+  mainPage.insertBefore(titleSpace, mainPage.firstChild);
+
+  // Espacio para los tableros
+  const boardsSpace = document.createElement("div");
+  boardsSpace.classList.add("boardsSpace");
+
+  // Contenedor del tablero del jugador
+  playerBoardContainer.classList.add("playerBoardContainer");
+  const playerLabel = document.createElement("span");
+  playerLabel.classList.add("playerLabel");
+  playerLabel.textContent = "Player";
+  playerBoardContainer.appendChild(playerLabel);
+
+  // Contenedor del tablero de la computadora
+  computerBoardContainer.classList.add("computerBoardContainer");
+  const computerLabel = document.createElement("span");
+  computerLabel.classList.add("computerLabel");
+  computerLabel.textContent = "Computer";
+  computerBoardContainer.appendChild(computerLabel);
+
+  // Contenedor debajo del tablero del jugador
+  const playerBoardBelow = document.createElement("div");
+  playerBoardBelow.classList.add("playerBoardBelow");
+
+  // Contenedor debajo del tablero de la computadora
+  const computerBoardBelow = document.createElement("div");
+  computerBoardBelow.classList.add("computerBoardBelow");
+
+  const changeDirButton = document.createElement("button");
+  changeDirButton.classList.add("fa", "fa-refresh");
+  changeDirButton.classList.add("changeDirButton");
+  playerBoardBelow.appendChild(changeDirButton);
+
+  // Añadir elementos al DOM
+  mainPage.appendChild(boardsSpace);
+  boardsSpace.appendChild(playerBoardContainer);
+  boardsSpace.appendChild(playerBoardBelow);
+  boardsSpace.appendChild(computerBoardContainer);
+  boardsSpace.appendChild(computerBoardBelow);
+
+  // Colocación de los barcos y generación de la cuadrícula
+  computerPlacement();
+  manualPlacement(
+    playerBoardContainer,
+    playerBoardBelow,
+    changeDirButton,
+    () => {
+      if (gameInstance.instance) {
+        gameInstance.instance.playerTurn();
+      }
+    }
+  );
+
+  generateGrid(playerBoard, playerBoardContainer);
+  generateGrid(computerBoard, computerBoardContainer);
 }
 
 

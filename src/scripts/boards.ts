@@ -1,19 +1,16 @@
 import { Ship } from './ships';
 
-// type CellStatus = "empty" | "ship" | "miss" | "hit";
-
 interface Cell {
     x: number;
     y: number;
-    status: 'empty' | 'ship' | 'hit' | 'miss';
+    state: 'empty' | 'ship' | 'hit' | 'miss';
     ship?: Ship;
 }
 
 
 type Board = Cell[][];
 
-// Función de ayuda para crear un tablero vacío con coordenadas
-function createEmptyBoard(size: number): Board {
+export function createEmptyBoard(size: number): Board {
     const board: Board = [];
     for (let x = 0; x < size; x++) {
         const row: Cell[] = [];
@@ -21,7 +18,7 @@ function createEmptyBoard(size: number): Board {
             row.push({
                 x,
                 y,
-                status: "empty"
+                state: "empty"
             });
         }
         board.push(row);
@@ -29,7 +26,6 @@ function createEmptyBoard(size: number): Board {
     return board;
 }
 
-// Crear tableros de 10x10 con coordenadas
 const playerBoard: Board = createEmptyBoard(10);
 const computerBoard: Board = createEmptyBoard(10);
 
