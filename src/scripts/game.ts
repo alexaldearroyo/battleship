@@ -39,10 +39,10 @@ class Game {
     }
     console.log(`Estado final de la celda: ${cell.state}`);
         // Después de la jugada del jugador, comprueba si es el turno de la computadora
-        if (this.currentTurn === "computerTurn") {
-            // Espera un breve periodo antes de que la computadora haga su jugada
-            setTimeout(() => this.computerTurn(), 500);
-          }
+    if (this.currentTurn === "computerTurn") {
+      // Espera un breve periodo antes de que la computadora haga su jugada
+      this.computerTurn();
+    }
   }
 
   computerTurn(row?: number, col?: number) {
