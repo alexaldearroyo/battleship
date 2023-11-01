@@ -45,28 +45,45 @@ class Game {
     }
   }
 
-  computerTurn(row?: number, col?: number) {
+  computerTurn() {
     let cell: Cell;
+    let targets: { row: number; col: number }[] = [];
 
-    if (row !== undefined && col !== undefined) {
-        // Si las coordenadas son proporcionadas, úsalas
-        cell = this.playerBoard[row][col];
+    // Encuentra todas las celdas que son 'hit' pero no pertenecen a un barco hundido
+    for (let row = 0; row < this.playerBoard.length; row++) {
+        for (let col = 0; col < this.playerBoard[row].length; col++) {
+            const currentCell = this.playerBoard[row][col];
+            if (currentCell.state === 'hit' && currentCell.ship?.state !== 'sunk') {
+                // Agrega las celdas adyacentes a la lista de objetivos
+                targets.push(...this.getAdjacentCells(row, col));
+            }
+        }
+    }
+
+    // Filtra las celdas que ya han sido golpeadas o falladas
+    targets = targets.filter(target => {
+        const targetCell = this.playerBoard[target.row][target.col];
+        return targetCell.state === 'empty' || targetCell.state === 'ship';
+    });
+
+    // Elige un objetivo aleatoriamente de la lista o elige una celda aleatoria si no hay objetivos
+    if (targets.length > 0) {
+        const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+        cell = this.playerBoard[randomTarget.row][randomTarget.col];
     } else {
-        // De lo contrario, elige aleatoriamente
         let attempts = 0;
         const maxAttempts = 1000;
-        
         do {
             if (attempts++ > maxAttempts) {
                 console.log("Lanzando error después de demasiados intentos");
                 throw new Error("Too many attempts to find a cell");
             }
-    
-            row = Math.floor(Math.random() * 10);
-            col = Math.floor(Math.random() * 10);
+            const row = Math.floor(Math.random() * 10);
+            const col = Math.floor(Math.random() * 10);
             cell = this.playerBoard[row][col];
-        } while (cell.state === "hit" || cell.state === "miss");
+        } while (cell.state === 'hit' || cell.state === 'miss');
     }
+
 
     console.log(`Estado inicial de la celda: ${cell.state}`);
 
@@ -90,6 +107,22 @@ class Game {
       this.currentTurn = "playerTurn";
     }
     console.log(`Estado final de la celda: ${cell.state}`);
+  }
+
+  private getAdjacentCells(row: number, col: number): { row: number; col: number }[] {
+    const directions = [
+        { row: -1, col: 0 }, // Arriba
+        { row: 1, col: 0 },  // Abajo
+        { row: 0, col: -1 }, // Izquierda
+        { row: 0, col: 1 }   // Derecha
+    ];
+
+    return directions.map(dir => {
+        return { row: row + dir.row, col: col + dir.col };
+    }).filter(pos => {
+        // Asegúrate de que la celda está dentro del tablero
+        return pos.row >= 0 && pos.row < 10 && pos.col >= 0 && pos.col < 10;
+    });
   }
 
   checkWinner() {
