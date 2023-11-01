@@ -15,13 +15,20 @@ const mainPage = document.querySelector(".mainPage") as HTMLElement;
 const playerBoardContainer = document.createElement("div");
 const computerBoardContainer = document.createElement("div");
 
+
+
 startButton.addEventListener("click", startGame);
 
 function updateBoardView(board: Board, container: HTMLElement) {
-  container.innerHTML = "";
+  const boardContainer = container.querySelector('.board-container');
+  if (boardContainer) {
+    container.removeChild(boardContainer);
+  }
   generateGrid(board, container);
 }
 
+
+let hasGameStarted = false;
 export let gameInstance = { instance: null as Game | null };
 
 function generateGrid(board: Board, container: HTMLElement) {
@@ -61,19 +68,18 @@ function generateGrid(board: Board, container: HTMLElement) {
         cell.addEventListener("click", function () {
           const xStr = cell.dataset.x;
           const yStr = cell.dataset.y;
-
-          // Asegurarse de que xStr y yStr no sean undefined antes de convertirlos en números
+        
           if (xStr !== undefined && yStr !== undefined) {
             const x = parseInt(xStr);
             const y = parseInt(yStr);
             if (gameInstance.instance) {
               gameInstance.instance.playerTurn(x, y);
-              gameInstance.instance.computerTurn();
               updateBoardView(computerBoard, computerBoardContainer);
               updateBoardView(playerBoard, playerBoardContainer);
             }
           }
         });
+        
       }
 
       // Si es el tablero del jugador, colorea las celdas de los barcos
@@ -146,10 +152,11 @@ function startGame() {
     playerBoardBelow,
     changeDirButton,
     () => {
-      if (gameInstance.instance) {
-        gameInstance.instance.playerTurn();
-      }
+      if (!hasGameStarted) {
+        gameInstance.instance = new Game(playerBoard, computerBoard);
+        hasGameStarted = true;
     }
+  }
   );
 
   generateGrid(playerBoard, playerBoardContainer);

@@ -139,8 +139,14 @@ body {
     cursor: default;
 }
 
-.cell.empty, .cell.ship {
+.computerBoardContainer .cell.empty,
+.computerBoardContainer .cell.ship {
     cursor: pointer;
+}
+
+.playerBoardContainer .cell.empty,
+.playerBoardContainer .cell.ship {
+    cursor: default;
 }
 
 

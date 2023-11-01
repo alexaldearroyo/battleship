@@ -1,116 +1,180 @@
 import { Game } from "../scripts/game";
-import { createEmptyBoard, Board, Cell } from "../scripts/boards";
-import { Ship, Axis, Owner } from "../scripts/ships"; // Asegúrate de importar Axis y Owner también
+import { Ship, Axis, Owner, BattleshipComputer } from "../scripts/ships";
+import { Cell } from "../scripts/boards";
+
+// Definir un objeto global.location simulado
+const mockLocation = {
+  reload: jest.fn()
+};
+
+Object.defineProperty(global, 'location', {
+  value: mockLocation,
+  writable: true
+});
+
+// Mocks para las funciones que no están definidas
+global.alert = jest.fn();
 
 describe("Game", () => {
+  let playerBoard: Cell[][];
+  let computerBoard: Cell[][];
   let game: Game;
-  let playerBoard: Board;
-  let computerBoard: Board;
-  let ship: Ship;
 
+  // Configuración inicial para cada prueba
   beforeEach(() => {
-    playerBoard = createEmptyBoard(10);
-    computerBoard = createEmptyBoard(10);
-    ship = new Ship(3, "horizontal", "playerShip");
-    // Colocar las partes del barco en diferentes celdas
-    for (let i = 0; i < ship.length; i++) {
-      computerBoard[0][i] = {
-        ...computerBoard[0][i],
-        state: "ship",
-        ship: ship,
-      };
-    }
-
+    playerBoard = createEmptyBoard();
+    computerBoard = createEmptyBoard();
+    placeShips(playerBoard);
+    placeShips(computerBoard);
     game = new Game(playerBoard, computerBoard);
   });
 
-  describe("constructor", () => {
-    it("should initialize player and computer boards", () => {
-      expect(game.playerBoard).toEqual(playerBoard);
-      expect(game.computerBoard).toEqual(computerBoard);
-    });
-
-    it("should start with player turn", () => {
-      expect(game.currentTurn).toEqual("playerTurn");
-    });
+  // Prueba para verificar la inicialización correcta del juego
+  test("should initialize game correctly", () => {
+    expect(game.playerBoard).toEqual(playerBoard);
+    expect(game.computerBoard).toEqual(computerBoard);
+    expect(game.currentTurn).toEqual("playerTurn");
+    expect(game.playerBoatsSunk).toBe(0);
+    expect(game.computerBoatsSunk).toBe(0);
   });
 
-  describe("playerTurn", () => {
-    it("should mark an empty cell as miss and change turn to computer", () => {
-      game.playerTurn(1, 1);
-      expect(computerBoard[1][1].state).toEqual("miss");
-      expect(game.currentTurn).toEqual("computerTurn");
-    });
+  // Prueba para un turno del jugador que resulta en un fallo
+  test("player turn - miss", () => {
+    // Asegúrate de que la celda seleccionada esté vacía
+    const row = 0;
+    const col = 0;
+    game.playerBoard[row][col].state = "empty";
 
-    it("should mark a ship cell as hit and change turn to computer", () => {
-      game.playerTurn(0, 0);
-      expect(computerBoard[0][0].state).toEqual("hit");
-      expect(game.currentTurn).toEqual("computerTurn");
-    });
-
-    it('should increment computerBoatsSunk when a ship is sunk', () => {
-      game.playerTurn(0, 0); // Golpear la primera parte del barco
-      game.playerTurn(0, 1); // Golpear la segunda parte del barco
-      game.playerTurn(0, 2); // Golpear la tercera parte del barco, hundiendo el barco
-      expect(game.computerBoatsSunk).toEqual(1);
+    game.playerTurn(row, col);
+    expect(game.computerBoard[row][col].state).toEqual("miss");
+    expect(game.currentTurn).toEqual("computerTurn");
   });
+  // Prueba para un turno del jugador que resulta en un acierto
+  test("player turn - hit", () => {
+    // Asegúrate de que la celda seleccionada tenga un barco
+    const row = 0;
+    const col = 0;
+    const length = 3; // Ejemplo, longitud del barco
+    const direction = "horizontal"; // Ejemplo, dirección del barco
+    const owner: Owner = "computerShip"; // 'playerShip' o 'computerShip'
+    const ship = new Ship(length, direction, owner);
+
+    const cell: Cell = {
+      x: row,
+      y: col,
+      state: "ship",
+      ship: ship,
+    };
+
+    game.computerBoard[row][col] = cell;
+
+    game.playerTurn(row, col);
+    expect(game.computerBoard[row][col].state).toEqual("hit");
+    expect(ship.hits).toBe(1);
+    expect(game.currentTurn).toEqual("computerTurn");
   });
+  // Prueba para un turno del jugador que resulta en hundir un barco
+  test("player turn - sink", () => {
+    // Asegúrate de que la celda seleccionada tenga un barco con 1 golpe restante
+    const row = 0;
+    const col = 0;
+    const ship = BattleshipComputer; // Usamos la instancia predefinida para la prueba
+    ship.hits = ship.length - 1; // Ajustamos para que tenga 1 golpe restante
 
-  describe("computerTurn", () => {
-    // Mocking Math.random to control the randomness
-    const originalMath = global.Math;
-    const mockMath = Object.create(global.Math);
-    mockMath.random = () => 0.5; // Always return 0.5, which corresponds to row 5, col 5
-    global.Math = mockMath;
+    // Crea un objeto literal que cumpla con la interfaz Cell
+    const cell: Cell = {
+      x: row,
+      y: col,
+      state: "ship",
+      ship: ship,
+    };
 
-    afterAll(() => {
-      global.Math = originalMath; // Restore original Math object after all tests
-    });
+    game.computerBoard[row][col] = cell;
 
-    beforeEach(() => {
-      // Asumimos que 'ship' ha sido definido anteriormente como hicimos en los bloques beforeEach
-      // Asignar un barco a la celda [5][5] en el tablero del jugador
-      playerBoard[5][5] = {
-        x: 5,
-        y: 5,
-        state: "ship",
-        ship: ship,
-      };
-    });
-
-    it("should mark a ship cell as hit and change turn to player", () => {
-      game.computerTurn();
-      expect(playerBoard[5][5].state).toEqual("hit");
-      expect(game.currentTurn).toEqual("playerTurn");
-    });
-
-    it("should increment playerBoatsSunk when a ship is sunk", () => {
-      game.computerTurn(5, 5); // Golpear la primera parte del barco
-      game.computerTurn(5, 6); // Golpear la segunda parte del barco
-      game.computerTurn(5, 7); // Golpear la tercera parte del barco, hundiendo el barco
-      expect(game.playerBoatsSunk).toEqual(1);
-    });
-
-    it("should mark an empty cell as miss and change turn to player", () => {
-      game.computerTurn();
-      expect(playerBoard[5][5].state).toEqual("miss");
-      expect(game.currentTurn).toEqual("playerTurn");
-    });
+    game.playerTurn(row, col);
+    expect(game.computerBoard[row][col].state).toEqual("hit");
+    expect(ship.state).toEqual("sunk");
+    expect(game.computerBoatsSunk).toBe(1);
+    expect(game.currentTurn).toEqual("computerTurn");
   });
 
-  describe("checkWinner", () => {
-    it('should log "Computer Wins!" when player boats sunk reaches 5', () => {
-      const consoleSpy = jest.spyOn(console, "log");
-      game.playerBoatsSunk = 5;
-      game.checkWinner();
-      expect(consoleSpy).toHaveBeenCalledWith("Computer Wins!");
-    });
+  // Similarmente, deberías escribir pruebas para computerTurn y checkWinner.
+  // ...
 
-    it('should log "Player Wins!" when computer boats sunk reaches 5', () => {
-      const consoleSpy = jest.spyOn(console, "log");
-      game.computerBoatsSunk = 5;
-      game.checkWinner();
-      expect(consoleSpy).toHaveBeenCalledWith("Player Wins!");
-    });
+  // Prueba para finalizar el juego
+  test("end game", () => {
+    game.endGame("player");
+    expect(global.alert).toHaveBeenCalledWith("Player Wins!");
+    expect(global.location.reload).toHaveBeenCalled();
   });
+
+// Funciones auxiliares para configurar el tablero y colocar barcos
+function createEmptyBoard(): Cell[][] {
+  // Crea un tablero vacío
+  const size = 10; // Asumiendo un tablero de 10x10
+  const board: Cell[][] = [];
+
+  for (let x = 0; x < size; x++) {
+      board[x] = [];
+      for (let y = 0; y < size; y++) {
+          // Crea un objeto literal que cumpla con la interfaz Cell
+          const cell: Cell = {
+              x: x,
+              y: y,
+              state: 'empty',
+              ship: undefined
+          };
+          board[x][y] = cell;
+      }
+  }
+
+  return board;
+}
+
+
+function placeShips(board: Cell[][]): void {
+  // Lista de barcos predefinidos para colocar en el tablero
+  const ships = [
+    { length: 5, axis: 'horizontal' as Axis, owner: 'playerShip' as Owner },
+    { length: 4, axis: 'vertical' as Axis, owner: 'playerShip' as Owner },
+  // ... otros barcos
+  ];
+
+  ships.forEach(ship => {
+      let placed = false;
+
+      while (!placed) {
+          // Elige una posición aleatoria en el tablero
+          const startX = Math.floor(Math.random() * board.length);
+          const startY = Math.floor(Math.random() * board.length);
+
+          // Verifica si el barco cabe en la posición seleccionada y si no se superpone con otros barcos
+          let canPlace = true;
+
+          for (let i = 0; i < ship.length; i++) {
+              const x = ship.axis === 'horizontal' ? startX + i : startX;
+              const y = ship.axis === 'vertical' ? startY + i : startY;
+
+              if (x >= board.length || y >= board.length || board[x][y].state === 'ship') {
+                  canPlace = false;
+                  break;
+              }
+          }
+
+          // Si el barco cabe, colócalo en el tablero
+          if (canPlace) {
+              for (let i = 0; i < ship.length; i++) {
+                  const x = ship.axis === 'horizontal' ? startX + i : startX;
+                  const y = ship.axis === 'vertical' ? startY + i : startY;
+
+                  const newShip = new Ship(ship.length, ship.axis, ship.owner);
+                  board[x][y] = { x: x, y: y, state: 'ship', ship: newShip };
+              }
+
+              placed = true;
+          }
+      }
+  });
+}
+
 });

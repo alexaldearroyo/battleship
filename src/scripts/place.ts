@@ -230,11 +230,6 @@ function placeCurrentShip(
         }
 
         onPlacementComplete();
-
-        gameInstance.instance = new Game(playerBoard, computerBoard);
-        if (gameInstance.instance) {
-          gameInstance.instance.playerTurn(x, y);
-      }
       }
     }
   }
