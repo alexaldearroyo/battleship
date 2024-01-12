@@ -41,13 +41,13 @@ function generateGrid(board: Board, container: HTMLElement) {
     for (let y = 0; y < boardSize; y++) {
       const cell = document.createElement("div");
       cell.classList.add("cell");
-      cell.dataset.x = x.toString(); // Asegurando que dataset.x esté definido
-      cell.dataset.y = y.toString(); // Asegurando que dataset.y esté definido
+      cell.dataset.x = x.toString();
+      cell.dataset.y = y.toString();
 
       switch (board[x][y].state) {
         case "empty":
           cell.classList.add("empty");
-          cell.textContent = `${x},${y}`; // Muestra las coordenadas en las celdas vacías
+          cell.textContent = `${x},${y}`;
           break;
         case "ship":
           cell.classList.add("ship");
@@ -63,7 +63,7 @@ function generateGrid(board: Board, container: HTMLElement) {
           break;
       }
 
-      // Agrega un evento de clic a todas las celdas del tablero del ordenador, no solo a las celdas "ship"
+      // Adds a click event to all cells of the computer board, not just the "ship" cells
       if (container.classList.contains("computerBoardContainer")) {
         cell.addEventListener("click", function () {
           const xStr = cell.dataset.x;
@@ -82,7 +82,7 @@ function generateGrid(board: Board, container: HTMLElement) {
         
       }
 
-      // Si es el tablero del jugador, colorea las celdas de los barcos
+      // If it is the player's board, color the cells of the ships
       if (container.classList.contains("playerBoardContainer") && board[x][y].state === "ship") {
         cell.classList.add("blue");
       }
@@ -96,40 +96,58 @@ function generateGrid(board: Board, container: HTMLElement) {
 
 
 function startGame() {
+
   if (startButton) startButton.remove();
 
-  // Título
+  mainPage.style.justifyContent = 'flex-end';
+  mainPage.style.marginTop = '45px';
+
+  const shipIcon = document.querySelector(".shipIcon") as HTMLImageElement;
+
+  // Containers for the icon and the title
   const titleSpace = document.createElement("div");
   titleSpace.classList.add("titleSpace");
 
+  const iconContainer = document.createElement("div");
+  const titleContainer = document.createElement("div");
+
+  if (shipIcon) {
+    // Add the icon to the icon container
+    iconContainer.appendChild(shipIcon);
+    // Add the icon container to the titleSpace
+    titleSpace.appendChild(iconContainer);
+  }
+
   title.classList.add("smallTitle");
-  titleSpace.appendChild(title);
+  titleContainer.appendChild(title);
+  // Add the title container to the titleSpace
+  titleSpace.appendChild(titleContainer);
 
   mainPage.insertBefore(titleSpace, mainPage.firstChild);
 
-  // Espacio para los tableros
+  // Space for the boards
   const boardsSpace = document.createElement("div");
   boardsSpace.classList.add("boardsSpace");
 
-  // Contenedor del tablero del jugador
+  // Container for the player's board
   playerBoardContainer.classList.add("playerBoardContainer");
   const playerLabel = document.createElement("span");
   playerLabel.classList.add("playerLabel");
   playerLabel.textContent = "Player";
   playerBoardContainer.appendChild(playerLabel);
 
-  // Contenedor del tablero de la computadora
+  // Container for the computer board
   computerBoardContainer.classList.add("computerBoardContainer");
   const computerLabel = document.createElement("span");
   computerLabel.classList.add("computerLabel");
   computerLabel.textContent = "Computer";
   computerBoardContainer.appendChild(computerLabel);
 
-  // Contenedor debajo del tablero del jugador
+  // Container below the player's board
   const playerBoardBelow = document.createElement("div");
   playerBoardBelow.classList.add("playerBoardBelow");
 
-  // Contenedor debajo del tablero de la computadora
+  // Container below the computer board
   const computerBoardBelow = document.createElement("div");
   computerBoardBelow.classList.add("computerBoardBelow");
 
@@ -138,14 +156,14 @@ function startGame() {
   changeDirButton.classList.add("changeDirButton");
   playerBoardBelow.appendChild(changeDirButton);
 
-  // Añadir elementos al DOM
+  // Add elements to the DOM
   mainPage.appendChild(boardsSpace);
   boardsSpace.appendChild(playerBoardContainer);
   boardsSpace.appendChild(playerBoardBelow);
   boardsSpace.appendChild(computerBoardContainer);
   boardsSpace.appendChild(computerBoardBelow);
 
-  // Colocación de los barcos y generación de la cuadrícula
+  // Ship placement and grid generation
   computerPlacement();
   manualPlacement(
     playerBoardContainer,
@@ -161,6 +179,7 @@ function startGame() {
 
   generateGrid(playerBoard, playerBoardContainer);
   generateGrid(computerBoard, computerBoardContainer);
+  
 }
 
 

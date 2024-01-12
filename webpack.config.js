@@ -11,6 +11,10 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
+        test: /\.svg$/,
+        use: 'file-loader'
+      },
+      {
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       }

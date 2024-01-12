@@ -17,7 +17,7 @@ class Game {
   playerTurn(row: number = 0, col: number = 0) {
     const cell = this.computerBoard[row][col];
     console.log(
-      `playerTurn - Row: ${row}, Col: ${col}, Estado inicial de la celda: ${cell.state}`
+      `playerTurn - Row: ${row}, Col: ${col}, Initial state of the cell: ${cell.state}`
     );
     if (cell.state === "empty") {
       cell.state = "miss";
@@ -25,11 +25,11 @@ class Game {
     } else if (cell.state === "ship") {
       cell.state = "hit";
       console.log(
-        `Antes de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+        `Before addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
       );
       cell.ship?.addHit();
       console.log(
-        `Después de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+        `After addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
       );
       if (cell.ship?.state === "sunk") {
         this.computerBoatsSunk++;
@@ -37,10 +37,11 @@ class Game {
       }
       this.currentTurn = "computerTurn";
     }
-    console.log(`Estado final de la celda: ${cell.state}`);
-        // Después de la jugada del jugador, comprueba si es el turno de la computadora
+    console.log(`Final state of the cell: ${cell.state}`);
+    
+    // After player's turn, check if it's the computer's turn
     if (this.currentTurn === "computerTurn") {
-      // Espera un breve periodo antes de que la computadora haga su jugada
+      // Wait for a brief period before the computer makes its move
       this.computerTurn();
     }
   }
@@ -49,24 +50,24 @@ class Game {
     let cell: Cell;
     let targets: { row: number; col: number }[] = [];
 
-    // Encuentra todas las celdas que son 'hit' pero no pertenecen a un barco hundido
+    // Find all cells that are 'hit' but do not belong to a sunk ship
     for (let row = 0; row < this.playerBoard.length; row++) {
         for (let col = 0; col < this.playerBoard[row].length; col++) {
             const currentCell = this.playerBoard[row][col];
             if (currentCell.state === 'hit' && currentCell.ship?.state !== 'sunk') {
-                // Agrega las celdas adyacentes a la lista de objetivos
+                // Add adjacent cells to the targets list
                 targets.push(...this.getAdjacentCells(row, col));
             }
         }
     }
 
-    // Filtra las celdas que ya han sido golpeadas o falladas
+    // Filter cells that have already been hit or missed
     targets = targets.filter(target => {
         const targetCell = this.playerBoard[target.row][target.col];
         return targetCell.state === 'empty' || targetCell.state === 'ship';
     });
 
-    // Elige un objetivo aleatoriamente de la lista o elige una celda aleatoria si no hay objetivos
+    // Choose a target randomly from the list or pick a random cell if no targets are available
     if (targets.length > 0) {
         const randomTarget = targets[Math.floor(Math.random() * targets.length)];
         cell = this.playerBoard[randomTarget.row][randomTarget.col];
@@ -75,7 +76,7 @@ class Game {
         const maxAttempts = 1000;
         do {
             if (attempts++ > maxAttempts) {
-                console.log("Lanzando error después de demasiados intentos");
+                console.log("Throwing error after too many attempts");
                 throw new Error("Too many attempts to find a cell");
             }
             const row = Math.floor(Math.random() * 10);
@@ -84,8 +85,7 @@ class Game {
         } while (cell.state === 'hit' || cell.state === 'miss');
     }
 
-
-    console.log(`Estado inicial de la celda: ${cell.state}`);
+    console.log(`Initial state of the cell: ${cell.state}`);
 
     if (cell.state === "empty") {
       cell.state = "miss";
@@ -93,12 +93,12 @@ class Game {
     } else if (cell.state === "ship") {
       cell.state = "hit";
       console.log(
-        `Antes de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+        `Before addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
       );
       cell.ship?.addHit();
-      console.log(`Estado final de la celda: ${cell.state}`);
+      console.log(`Final state of the cell: ${cell.state}`);
       console.log(
-        `Después de addHit - Hits: ${cell.ship?.hits}, Estado del barco: ${cell.ship?.state}`
+        `After addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
       );
       if (cell.ship?.state === "sunk") {
         this.playerBoatsSunk++;
@@ -106,21 +106,21 @@ class Game {
       }
       this.currentTurn = "playerTurn";
     }
-    console.log(`Estado final de la celda: ${cell.state}`);
+    console.log(`Final state of the cell: ${cell.state}`);
   }
 
   private getAdjacentCells(row: number, col: number): { row: number; col: number }[] {
     const directions = [
-        { row: -1, col: 0 }, // Arriba
-        { row: 1, col: 0 },  // Abajo
-        { row: 0, col: -1 }, // Izquierda
-        { row: 0, col: 1 }   // Derecha
+        { row: -1, col: 0 }, // Up
+        { row: 1, col: 0 },  // Down
+        { row: 0, col: -1 }, // Left
+        { row: 0, col: 1 }   // Right
     ];
 
     return directions.map(dir => {
         return { row: row + dir.row, col: col + dir.col };
     }).filter(pos => {
-        // Asegúrate de que la celda está dentro del tablero
+        // Make sure the cell is within the board
         return pos.row >= 0 && pos.row < 10 && pos.col >= 0 && pos.col < 10;
     });
   }
@@ -128,16 +128,16 @@ class Game {
   checkWinner() {
     if (this.playerBoatsSunk === 5) {
       console.log("Computer Wins!");
-      showEndGamePopup('computer'); // Asegúrate de que 'computer' es exactamente del tipo esperado
+      showEndGamePopup('computer'); // Make sure 'computer' is exactly of the expected type
     } else if (this.computerBoatsSunk === 5) {
       console.log("Player Wins!");
-      showEndGamePopup('player'); // Asegúrate de que 'player' es exactamente del tipo esperado
+      showEndGamePopup('player'); // Make sure 'player' is exactly of the expected type
     }
   }
   
 
   endGame(winner: "player" | "computer") {
-    // Aquí puedes emitir un evento o llamar a una función de manejo de fin de juego.
+    // Here you can emit an event or call an end game handling function.
     showEndGamePopup(winner);
   }
 }
@@ -145,10 +145,7 @@ class Game {
 function showEndGamePopup(winner: 'player' | 'computer'): void {
     const message = winner === 'player' ? 'Player Wins!' : 'Computer Wins!';
     alert(message);
-    location.reload(); // Recarga la página
-  }
-  
+    location.reload(); // Reload the page
+}
 
 export { Game };
-
-

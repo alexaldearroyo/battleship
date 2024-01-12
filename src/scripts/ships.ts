@@ -18,25 +18,25 @@ class Ship {
 
     addHit(): void {
         if (this.state === "sunk") {
-            console.log("El barco ya está hundido, no se incrementa hits");
+            console.log("The ship is already sunk, hits are not incremented");
             return;
         }
         
-        console.log(`Estado inicial del barco: ${this.state}`);
+        console.log(`Initial state of the ship: ${this.state}`);
         this.hits += 1;
-        console.log(`Hits actual: ${this.hits}, Longitud del barco: ${this.length}`);
+        console.log(`Current hits: ${this.hits}, Ship length: ${this.length}`);
         
         if (this.hits === this.length) {
-            console.log("Barco hundido");
+            console.log("Ship sunk");
             this.state = "sunk";
         }
-        console.log(`Estado final del barco: ${this.state}`);
-
+        console.log(`Final state of the ship: ${this.state}`);
     }
+    
     
 }
 
-// Crear 5 instancias básicas de Ship
+// Create 5 basic instances of Ship
 const CarrierPlayer = new Ship(5, 'horizontal', 'playerShip');
 const BattleshipPlayer = new Ship(4, 'horizontal', 'playerShip');
 const DestructorPlayer = new Ship(3, 'horizontal', 'playerShip');
@@ -62,5 +62,3 @@ export {
     SubmarineComputer,
     PatrolComputer
 };
-
-/// TEST three

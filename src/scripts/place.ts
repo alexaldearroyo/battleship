@@ -123,7 +123,7 @@ function previewShipPlacement(
   playerBoardContainer: HTMLElement,
   event?: MouseEvent
 ) {
-  if (!event) return; // Salir temprano si no se proporciona evento
+  if (!event) return;
 
   const lastShip = playerBoardContainer.querySelector(".green");
   if (lastShip) {
@@ -175,8 +175,8 @@ function previewShipPlacement(
 
 function placeCurrentShip(
   playerBoardContainer: HTMLElement,
-  event: MouseEvent, // Añade este argumento
-  onPlacementComplete: () => void // Añade este argumento
+  event: MouseEvent,
+  onPlacementComplete: () => void
 ) {
 
   const cell = event.target as HTMLElement;
@@ -201,7 +201,7 @@ function placeCurrentShip(
           `.cell[data-x="${currentX}"][data-y="${currentY}"]`
         ) as HTMLElement;
         if (shipCell) {
-          shipCell.style.backgroundColor = "blue";
+          shipCell.style.backgroundColor = "black";
           shipCell.classList.remove("green", "red");
         }
       }
@@ -255,7 +255,7 @@ export function manualPlacement(
   playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
 
   changeDirButton.addEventListener("click", () => {
-      console.log("Botón presionado");
+      console.log("Button pressed");
 
       if (defaultOrientation === "horizontal") {
         defaultOrientation = "vertical";
