@@ -1,7 +1,8 @@
 # Battleship Game
 
-[TypeScript Badge](https://img.shields.io/badge/TypeScript-green?style=flat&logo=typescript)
-[Webpack Badge](https://img.shields.io/badge/Webpack-blue?style=flat&logo=webpack)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat&logo=typescript)
+![Webpack](https://img.shields.io/badge/Webpack-blue?style=flat&logo=webpack)
+
 
 Battleship Game is a classic two-player strategy board game implemented as a web application. In this game, players take turns to guess the locations of their opponent's fleet of ships and attempt to sink them. The player who sinks all of their opponent's ships first wins the game.
 
