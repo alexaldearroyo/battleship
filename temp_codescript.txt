@@ -1,0 +1,1061 @@
+// src/index.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+    <title>Battleship Game</title>
+</head>
+<body>
+    <div class="mainPage">
+        <img class="shipIcon" src="ship.svg" alt="Ship Icon" style="height: 50px; width: auto;"/> 
+        <h1 class="title">Battleship Game</h1>
+        <button class="startButton">START GAME</button>
+        <P class="copyright">© 2023 by Alex Arroyo</P>
+    </div>
+    
+</body>
+</html>
+
+----------------------------------------
+
+// src/index.ts:
+
+import "./styles/main.css";
+import { playerBoard, computerBoard, Board } from "./scripts/boards";
+import {
+  manualPlacement,
+  playerPlacement,
+  computerPlacement,
+  shipsPlaced,
+  totalShips,
+} from "./scripts/place";
+import { Game } from "./scripts/game";
+
+const startButton = document.querySelector(".startButton") as HTMLElement;
+const title = document.querySelector(".title") as HTMLElement;
+const mainPage = document.querySelector(".mainPage") as HTMLElement;
+const playerBoardContainer = document.createElement("div");
+const computerBoardContainer = document.createElement("div");
+
+
+
+startButton.addEventListener("click", startGame);
+
+function updateBoardView(board: Board, container: HTMLElement) {
+  const boardContainer = container.querySelector('.board-container');
+  if (boardContainer) {
+    container.removeChild(boardContainer);
+  }
+  generateGrid(board, container);
+}
+
+
+let hasGameStarted = false;
+export let gameInstance = { instance: null as Game | null };
+
+function generateGrid(board: Board, container: HTMLElement) {
+  const boardSize = board.length;
+
+  const cellContainer = document.createElement("div");
+  cellContainer.classList.add("board-container");
+
+  for (let x = 0; x < boardSize; x++) {
+    for (let y = 0; y < boardSize; y++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.x = x.toString();
+      cell.dataset.y = y.toString();
+
+      switch (board[x][y].state) {
+        case "empty":
+          cell.classList.add("empty");
+          cell.textContent = `${x},${y}`;
+          break;
+        case "ship":
+          cell.classList.add("ship");
+          break;
+        case "miss":
+          cell.classList.add("miss");
+          // cell.textContent = "X";
+          break;
+        case "hit":
+          cell.classList.add("hit");
+          break;
+        default:
+          break;
+      }
+
+      // Adds a click event to all cells of the computer board, not just the "ship" cells
+      if (container.classList.contains("computerBoardContainer")) {
+        cell.addEventListener("click", function () {
+          const xStr = cell.dataset.x;
+          const yStr = cell.dataset.y;
+        
+          if (xStr !== undefined && yStr !== undefined) {
+            const x = parseInt(xStr);
+            const y = parseInt(yStr);
+            if (gameInstance.instance) {
+              gameInstance.instance.playerTurn(x, y);
+              updateBoardView(computerBoard, computerBoardContainer);
+              updateBoardView(playerBoard, playerBoardContainer);
+            }
+          }
+        });
+        
+      }
+
+      // If it is the player's board, color the cells of the ships
+      if (container.classList.contains("playerBoardContainer") && board[x][y].state === "ship") {
+        cell.classList.add("blue");
+      }
+
+      cellContainer.appendChild(cell);
+    }
+  }
+
+  container.appendChild(cellContainer);
+}
+
+
+function startGame() {
+
+  if (startButton) startButton.remove();
+
+  mainPage.style.justifyContent = 'flex-end';
+  mainPage.style.marginTop = '45px';
+
+  const shipIcon = document.querySelector(".shipIcon") as HTMLImageElement;
+
+  // Containers for the icon and the title
+  const titleSpace = document.createElement("div");
+  titleSpace.classList.add("titleSpace");
+
+  const iconContainer = document.createElement("div");
+  const titleContainer = document.createElement("div");
+
+  if (shipIcon) {
+    // Add the icon to the icon container
+    iconContainer.appendChild(shipIcon);
+    // Add the icon container to the titleSpace
+    titleSpace.appendChild(iconContainer);
+  }
+
+  title.classList.add("smallTitle");
+  titleContainer.appendChild(title);
+  // Add the title container to the titleSpace
+  titleSpace.appendChild(titleContainer);
+
+  mainPage.insertBefore(titleSpace, mainPage.firstChild);
+
+  // Space for the boards
+  const boardsSpace = document.createElement("div");
+  boardsSpace.classList.add("boardsSpace");
+
+  // Container for the player's board
+  playerBoardContainer.classList.add("playerBoardContainer");
+  const playerLabel = document.createElement("span");
+  playerLabel.classList.add("playerLabel");
+  playerLabel.textContent = "Player";
+  playerBoardContainer.appendChild(playerLabel);
+
+  // Container for the computer board
+  computerBoardContainer.classList.add("computerBoardContainer");
+  const computerLabel = document.createElement("span");
+  computerLabel.classList.add("computerLabel");
+  computerLabel.textContent = "Computer";
+  computerBoardContainer.appendChild(computerLabel);
+
+  // Container below the player's board
+  const playerBoardBelow = document.createElement("div");
+  playerBoardBelow.classList.add("playerBoardBelow");
+
+  // Container below the computer board
+  const computerBoardBelow = document.createElement("div");
+  computerBoardBelow.classList.add("computerBoardBelow");
+
+  const changeDirButton = document.createElement("button");
+  changeDirButton.classList.add("fa", "fa-refresh");
+  changeDirButton.classList.add("changeDirButton");
+  playerBoardBelow.appendChild(changeDirButton);
+
+  // Add elements to the DOM
+  mainPage.appendChild(boardsSpace);
+  boardsSpace.appendChild(playerBoardContainer);
+  boardsSpace.appendChild(playerBoardBelow);
+  boardsSpace.appendChild(computerBoardContainer);
+  boardsSpace.appendChild(computerBoardBelow);
+
+  // Ship placement and grid generation
+  computerPlacement();
+  manualPlacement(
+    playerBoardContainer,
+    playerBoardBelow,
+    changeDirButton,
+    () => {
+      if (!hasGameStarted) {
+        gameInstance.instance = new Game(playerBoard, computerBoard);
+        hasGameStarted = true;
+    }
+  }
+  );
+
+  generateGrid(playerBoard, playerBoardContainer);
+  generateGrid(computerBoard, computerBoardContainer);
+  
+}
+
+
+
+----------------------------------------
+
+// src/scripts/boards.ts:
+
+import { Ship } from './ships';
+
+interface Cell {
+    x: number;
+    y: number;
+    state: 'empty' | 'ship' | 'hit' | 'miss';
+    ship?: Ship;
+}
+
+
+type Board = Cell[][];
+
+export function createEmptyBoard(size: number): Board {
+    const board: Board = [];
+    for (let x = 0; x < size; x++) {
+        const row: Cell[] = [];
+        for (let y = 0; y < size; y++) {
+            row.push({
+                x,
+                y,
+                state: "empty"
+            });
+        }
+        board.push(row);
+    }
+    return board;
+}
+
+const playerBoard: Board = createEmptyBoard(10);
+const computerBoard: Board = createEmptyBoard(10);
+
+export { playerBoard, computerBoard, Board, Cell };
+
+----------------------------------------
+
+// src/scripts/game.ts:
+
+import { Ship } from "./ships";
+import { Cell } from "./boards";
+
+class Game {
+  playerBoard: Cell[][];
+  computerBoard: Cell[][];
+  currentTurn: "playerTurn" | "computerTurn";
+  playerBoatsSunk: number = 0;
+  computerBoatsSunk: number = 0;
+
+  constructor(playerBoard: Cell[][], computerBoard: Cell[][]) {
+    this.playerBoard = playerBoard;
+    this.computerBoard = computerBoard;
+    this.currentTurn = "playerTurn";
+  }
+
+  playerTurn(row: number = 0, col: number = 0) {
+    const cell = this.computerBoard[row][col];
+    console.log(
+      `playerTurn - Row: ${row}, Col: ${col}, Initial state of the cell: ${cell.state}`
+    );
+    if (cell.state === "empty") {
+      cell.state = "miss";
+      this.currentTurn = "computerTurn";
+    } else if (cell.state === "ship") {
+      cell.state = "hit";
+      console.log(
+        `Before addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
+      );
+      cell.ship?.addHit();
+      console.log(
+        `After addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
+      );
+      if (cell.ship?.state === "sunk") {
+        this.computerBoatsSunk++;
+        this.checkWinner();
+      }
+      this.currentTurn = "computerTurn";
+    }
+    console.log(`Final state of the cell: ${cell.state}`);
+    
+    // After player's turn, check if it's the computer's turn
+    if (this.currentTurn === "computerTurn") {
+      // Wait for a brief period before the computer makes its move
+      this.computerTurn();
+    }
+  }
+
+  computerTurn() {
+    let cell: Cell;
+    let targets: { row: number; col: number }[] = [];
+
+    // Find all cells that are 'hit' but do not belong to a sunk ship
+    for (let row = 0; row < this.playerBoard.length; row++) {
+        for (let col = 0; col < this.playerBoard[row].length; col++) {
+            const currentCell = this.playerBoard[row][col];
+            if (currentCell.state === 'hit' && currentCell.ship?.state !== 'sunk') {
+                // Add adjacent cells to the targets list
+                targets.push(...this.getAdjacentCells(row, col));
+            }
+        }
+    }
+
+    // Filter cells that have already been hit or missed
+    targets = targets.filter(target => {
+        const targetCell = this.playerBoard[target.row][target.col];
+        return targetCell.state === 'empty' || targetCell.state === 'ship';
+    });
+
+    // Choose a target randomly from the list or pick a random cell if no targets are available
+    if (targets.length > 0) {
+        const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+        cell = this.playerBoard[randomTarget.row][randomTarget.col];
+    } else {
+        let attempts = 0;
+        const maxAttempts = 1000;
+        do {
+            if (attempts++ > maxAttempts) {
+                console.log("Throwing error after too many attempts");
+                throw new Error("Too many attempts to find a cell");
+            }
+            const row = Math.floor(Math.random() * 10);
+            const col = Math.floor(Math.random() * 10);
+            cell = this.playerBoard[row][col];
+        } while (cell.state === 'hit' || cell.state === 'miss');
+    }
+
+    console.log(`Initial state of the cell: ${cell.state}`);
+
+    if (cell.state === "empty") {
+      cell.state = "miss";
+      this.currentTurn = "playerTurn";
+    } else if (cell.state === "ship") {
+      cell.state = "hit";
+      console.log(
+        `Before addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
+      );
+      cell.ship?.addHit();
+      console.log(`Final state of the cell: ${cell.state}`);
+      console.log(
+        `After addHit - Hits: ${cell.ship?.hits}, Ship state: ${cell.ship?.state}`
+      );
+      if (cell.ship?.state === "sunk") {
+        this.playerBoatsSunk++;
+        this.checkWinner();
+      }
+      this.currentTurn = "playerTurn";
+    }
+    console.log(`Final state of the cell: ${cell.state}`);
+  }
+
+  private getAdjacentCells(row: number, col: number): { row: number; col: number }[] {
+    const directions = [
+        { row: -1, col: 0 }, // Up
+        { row: 1, col: 0 },  // Down
+        { row: 0, col: -1 }, // Left
+        { row: 0, col: 1 }   // Right
+    ];
+
+    return directions.map(dir => {
+        return { row: row + dir.row, col: col + dir.col };
+    }).filter(pos => {
+        // Make sure the cell is within the board
+        return pos.row >= 0 && pos.row < 10 && pos.col >= 0 && pos.col < 10;
+    });
+  }
+
+  checkWinner() {
+    if (this.playerBoatsSunk === 5) {
+      console.log("Computer Wins!");
+      showEndGamePopup('computer'); // Make sure 'computer' is exactly of the expected type
+    } else if (this.computerBoatsSunk === 5) {
+      console.log("Player Wins!");
+      showEndGamePopup('player'); // Make sure 'player' is exactly of the expected type
+    }
+  }
+  
+
+  endGame(winner: "player" | "computer") {
+    // Here you can emit an event or call an end game handling function.
+    showEndGamePopup(winner);
+  }
+}
+
+function showEndGamePopup(winner: 'player' | 'computer'): void {
+    const message = winner === 'player' ? 'Player Wins!' : 'Computer Wins!';
+    alert(message);
+    location.reload(); // Reload the page
+}
+
+export { Game };
+
+----------------------------------------
+
+// src/scripts/place.ts:
+
+import { playerBoard, computerBoard, Board, Cell } from "./boards";
+
+import {
+  Ship,
+  Axis,
+  CarrierPlayer,
+  BattleshipPlayer,
+  DestructorPlayer,
+  SubmarinePlayer,
+  PatrolPlayer,
+  CarrierComputer,
+  BattleshipComputer,
+  DestructorComputer,
+  SubmarineComputer,
+  PatrolComputer,
+} from "./ships";
+
+import { Game } from "./game";
+import { gameInstance } from "../index";
+
+let shipsToPlace = [
+  CarrierPlayer,
+  BattleshipPlayer,
+  DestructorPlayer,
+  SubmarinePlayer,
+  PatrolPlayer,
+];
+
+let shipsPlaced = 0;
+const totalShips = 5;
+let currentShipIndex = 0;
+let defaultOrientation: "horizontal" | "vertical" = "horizontal";
+let boundPreviewShipPlacement: ((event?: MouseEvent) => void) | null = null;
+let boundPlaceCurrentShip: ((event: MouseEvent) => void) | null = null;
+
+
+
+function canPlaceShip(
+  board: Cell[][],
+  x: number,
+  y: number,
+  shipLength: number,
+  horizontal: boolean
+): boolean {
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1], // N, S, W, E
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1], // NW, NE, SW, SE
+  ];
+
+  for (let i = 0; i < shipLength; i++) {
+    const currentX = horizontal ? x : x + i;
+    const currentY = horizontal ? y + i : y;
+
+    if (currentX < 0 || currentY < 0 || currentX >= 10 || currentY >= 10) {
+      return false; // out of board
+    }
+
+    if (board[currentX][currentY].state === "ship") {
+      return false; // cell already occupied
+    }
+
+    for (const [dx, dy] of directions) {
+      const newX = currentX + dx;
+      const newY = currentY + dy;
+      if (
+        newX >= 0 &&
+        newY >= 0 &&
+        newX < 10 &&
+        newY < 10 &&
+        board[newX][newY].state === "ship"
+      ) {
+        return false; // adjacent ship found
+      }
+    }
+  }
+
+  if (shipLength > 1) {
+    for (const [dx, dy] of directions) {
+      const adjacentX = x + dx;
+      const adjacentY = y + dy;
+      if (
+        adjacentX >= 0 &&
+        adjacentY >= 0 &&
+        adjacentX < 10 &&
+        adjacentY < 10 &&
+        board[adjacentX][adjacentY].state === "ship"
+      ) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function placeShip(
+  board: Cell[][],
+  ship: Ship,
+  x: number,
+  y: number,
+  vertical: boolean
+): void {
+  for (let i = 0; i < ship.length; i++) {
+    const currentX = vertical ? x : x + i;
+    const currentY = vertical ? y + i : y;
+    board[currentX][currentY] = {
+      x: currentX,
+      y: currentY,
+      state: "ship",
+      ship: ship,
+    };
+  }
+}
+
+
+function previewShipPlacement(
+  playerBoardContainer: HTMLElement,
+  event?: MouseEvent
+) {
+  if (!event) return;
+
+  const lastShip = playerBoardContainer.querySelector(".green");
+  if (lastShip) {
+    lastShip.classList.remove("green");
+  }
+
+  if (currentShipIndex >= shipsToPlace.length) {
+    return;
+  }
+
+  const cell = event.target as HTMLElement;
+  if (!cell || !cell.dataset || !cell.dataset.x || !cell.dataset.y) {
+    return;
+  }
+  let x: number;
+  let y: number;
+
+  const allCells = playerBoardContainer.querySelectorAll(".cell");
+  allCells.forEach((cell) => {
+    cell.classList.remove("green", "red");
+  });
+
+  if (cell.dataset.x && cell.dataset.y) {
+    x = parseInt(cell.dataset.x, 10);
+    y = parseInt(cell.dataset.y, 10);
+
+    const ship = shipsToPlace[currentShipIndex];
+    const canPlace = canPlaceShip(
+      playerBoard,
+      x,
+      y,
+      ship.length,
+      defaultOrientation === "horizontal"
+    );
+
+    for (let i = 0; i < ship.length; i++) {
+      const currentX = defaultOrientation === "horizontal" ? x : x + i;
+      const currentY = defaultOrientation === "horizontal" ? y + i : y;
+      const previewCell = document.querySelector(
+        `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+      );
+      if (previewCell) {
+        previewCell.classList.toggle("green", canPlace);
+        previewCell.classList.toggle("red", !canPlace);
+      }
+    }
+  }
+}
+
+function placeCurrentShip(
+  playerBoardContainer: HTMLElement,
+  event: MouseEvent,
+  onPlacementComplete: () => void
+) {
+
+  const cell = event.target as HTMLElement;
+  if (
+    cell.dataset.x &&
+    cell.dataset.y &&
+    currentShipIndex < shipsToPlace.length
+  ) {
+    const x = parseInt(cell.dataset.x, 10);
+    const y = parseInt(cell.dataset.y, 10);
+
+    const ship = shipsToPlace[currentShipIndex];
+    const horizontal = defaultOrientation === "horizontal";
+
+    if (canPlaceShip(playerBoard, x, y, ship.length, horizontal)) {
+      placeShip(playerBoard, ship, x, y, horizontal);
+
+      for (let i = 0; i < ship.length; i++) {
+        const currentX = horizontal ? x : x + i;
+        const currentY = horizontal ? y + i : y;
+        const shipCell = document.querySelector(
+          `.cell[data-x="${currentX}"][data-y="${currentY}"]`
+        ) as HTMLElement;
+        if (shipCell) {
+          shipCell.style.backgroundColor = "black";
+          shipCell.classList.remove("green", "red");
+        }
+      }
+
+      currentShipIndex++;
+      shipsPlaced++; 
+
+      if (currentShipIndex === shipsToPlace.length) {
+        if (boundPreviewShipPlacement) {
+          playerBoardContainer.removeEventListener("mouseover", boundPreviewShipPlacement);
+        }
+        if (boundPlaceCurrentShip) {
+          playerBoardContainer.removeEventListener("click", boundPlaceCurrentShip);
+        }
+    
+
+        boundPreviewShipPlacement = null;
+        boundPlaceCurrentShip = null;
+    
+
+        const changeDirButton = document.querySelector(
+          ".changeDirButton"
+        ) as HTMLElement;
+        if (changeDirButton) {
+          changeDirButton.style.display = "none";
+        }
+
+        onPlacementComplete();
+      }
+    }
+  }
+}
+
+export function manualPlacement(
+  playerBoardContainer: HTMLElement,
+  playerBoardBelow: HTMLElement,
+  changeDirButton: HTMLButtonElement,
+  onPlacementComplete: () => void
+) {
+  if (!boundPreviewShipPlacement) {
+    boundPreviewShipPlacement = previewShipPlacement.bind(null, playerBoardContainer);
+  }
+
+  if (!boundPlaceCurrentShip) {
+    boundPlaceCurrentShip = (event: MouseEvent) => {
+      placeCurrentShip(playerBoardContainer, event, onPlacementComplete);
+    };
+  }
+
+  playerBoardContainer.addEventListener("mouseover", boundPreviewShipPlacement);
+  playerBoardContainer.addEventListener("click", boundPlaceCurrentShip);
+
+  changeDirButton.addEventListener("click", () => {
+      console.log("Button pressed");
+
+      if (defaultOrientation === "horizontal") {
+        defaultOrientation = "vertical";
+      } else {
+        defaultOrientation = "horizontal";
+      }
+
+      const mockEvent = new MouseEvent("mouseover");
+      previewShipPlacement(playerBoardContainer, mockEvent);
+    });
+  }
+
+
+
+function randomPlacement(board: Board, ship: Ship): void {
+  let x: number, y: number;
+  let tries = 0;
+  const maxTries = 1000;
+  let placed = false;
+
+  let possiblePositions: { x: number; y: number; vertical: boolean }[] = [];
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board[i].length; j++) {
+      possiblePositions.push({ x: i, y: j, vertical: true });
+      possiblePositions.push({ x: i, y: j, vertical: false });
+    }
+  }
+
+  possiblePositions = possiblePositions.sort(() => Math.random() - 0.5);
+
+  for (const position of possiblePositions) {
+    x = position.x;
+    y = position.y;
+    ship.axis = position.vertical ? "vertical" : "horizontal";
+    if (canPlaceShip(board, x, y, ship.length, ship.axis === "vertical")) {
+      placeShip(board, ship, x, y, ship.axis === "vertical");
+      placed = true;
+      break;
+    }
+    tries++;
+    if (tries >= maxTries) {
+      break;
+    }
+  }
+
+  if (!placed) {
+    throw new Error("Unable to place ship after many attempts");
+  }
+}
+
+function playerPlacement(attempts: number = 0): void {
+  if (attempts >= 10) {
+    throw new Error("Unable to place all player ships after 10 attempts.");
+  }
+
+  const ships = [
+    CarrierPlayer,
+    BattleshipPlayer,
+    DestructorPlayer,
+    SubmarinePlayer,
+    PatrolPlayer,
+  ];
+  ships.sort((a, b) => b.length - a.length);
+
+  try {
+    for (const ship of ships) {
+      randomPlacement(playerBoard, ship);
+    }
+  } catch (error) {
+    resetBoard(playerBoard);
+    playerPlacement(attempts + 1);
+  }
+}
+
+function computerPlacement(attempts: number = 0): void {
+  if (attempts >= 10) {
+    throw new Error("Unable to place all computer ships after 10 attempts.");
+  }
+
+  try {
+    randomPlacement(computerBoard, CarrierComputer);
+    randomPlacement(computerBoard, BattleshipComputer);
+    randomPlacement(computerBoard, DestructorComputer);
+    randomPlacement(computerBoard, SubmarineComputer);
+    randomPlacement(computerBoard, PatrolComputer);
+  } catch (error) {
+    resetBoard(computerBoard);
+    computerPlacement(attempts + 1);
+  }
+}
+
+function resetBoard(board: Cell[][]): void {
+  for (let x = 0; x < 10; x++) {
+    for (let y = 0; y < 10; y++) {
+      board[x][y].state = "empty";
+    }
+  }
+}
+
+export { playerPlacement, computerPlacement, shipsPlaced, totalShips };
+
+----------------------------------------
+
+// src/scripts/ships.ts:
+
+export type Axis = 'horizontal' | 'vertical';
+export type Owner = 'playerShip' | 'computerShip';
+
+class Ship {
+    length: number;
+    axis: Axis;
+    owner: Owner;
+    hits: number;
+    state: "floating" | "sunk";
+
+    constructor(length: number, axis: Axis, owner: Owner) {
+        this.length = length;
+        this.axis = axis;
+        this.owner = owner;
+        this.hits = 0;
+        this.state = "floating";
+    }
+
+    addHit(): void {
+        if (this.state === "sunk") {
+            console.log("The ship is already sunk, hits are not incremented");
+            return;
+        }
+        
+        console.log(`Initial state of the ship: ${this.state}`);
+        this.hits += 1;
+        console.log(`Current hits: ${this.hits}, Ship length: ${this.length}`);
+        
+        if (this.hits === this.length) {
+            console.log("Ship sunk");
+            this.state = "sunk";
+        }
+        console.log(`Final state of the ship: ${this.state}`);
+    }
+    
+    
+}
+
+// Create 5 basic instances of Ship
+const CarrierPlayer = new Ship(5, 'horizontal', 'playerShip');
+const BattleshipPlayer = new Ship(4, 'horizontal', 'playerShip');
+const DestructorPlayer = new Ship(3, 'horizontal', 'playerShip');
+const SubmarinePlayer = new Ship(3, 'horizontal', 'playerShip');
+const PatrolPlayer = new Ship(2, 'horizontal', 'playerShip');
+
+const CarrierComputer = new Ship(5, 'horizontal', 'computerShip');
+const BattleshipComputer = new Ship(4, 'horizontal', 'computerShip');
+const DestructorComputer = new Ship(3, 'horizontal', 'computerShip');
+const SubmarineComputer = new Ship(3, 'horizontal', 'computerShip');
+const PatrolComputer = new Ship(2, 'horizontal', 'computerShip');
+
+export {
+    Ship,
+    CarrierPlayer,
+    BattleshipPlayer,
+    DestructorPlayer,
+    SubmarinePlayer,
+    PatrolPlayer,
+    CarrierComputer,
+    BattleshipComputer,
+    DestructorComputer,
+    SubmarineComputer,
+    PatrolComputer
+};
+
+----------------------------------------
+
+// src/styles/main.css:
+
+@import "~font-awesome/css/font-awesome.min.css";
+
+body {
+    font-family: 'Arial', sans-serif;
+    height: 100vh;
+    max-height: 100vh;
+    width: 100vw;
+    max-width: 100vw;
+    background-color: #fff;
+    margin: 0;
+    overflow: hidden;
+}
+
+.mainPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 200px;
+    background-color: #fff;
+    height: 100vh;
+    max-height: 100vh;
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+}
+
+.title {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 64px;
+    margin-bottom: 40px;
+}
+
+.smallTitle {
+    font-size: 32px;
+    margin-bottom: 0;
+    margin-top: 20px;
+}
+
+.startButton {
+    padding: 20px 40px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    background-color: black;
+    transition: background-color 0.3s ease;
+    font-size: 18px;
+    color: white;
+}
+
+.startButton:hover {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.titleSpace {
+    flex-grow: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.titleSpace, .iconContainer, .titleContainer {
+    display: block;
+    text-align: center;
+  }
+  
+.shipIcon {
+    height: 100px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.copyright {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 25px;
+    /* put it at the bottom of the page */
+    position: absolute;
+    bottom: 0;
+}
+
+.boardsSpace {
+    /* flex-grow: 1; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    gap: 2%;
+}
+
+.playerLabel, .computerLabel {
+    font-size: 22px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border: 0.5px solid #333;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.playerBoardContainer, .computerBoardContainer {
+    min-width: 400px;
+    aspect-ratio: 1;
+    margin: 0 2.5vw;
+    position: relative;
+    margin-top: 40px;
+    
+
+}
+
+/* Styles for board container */
+.board-container {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    margin: 0 auto;
+}
+
+/* Cell styles */
+.cell {
+    aspect-ratio: 1;
+    background-color: white;
+    border: 0.5px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: transparent;
+}
+
+.cell.blue {
+    background-color: black !important;
+}
+
+.cell.green {
+    background-color: black !important;
+    cursor: pointer;
+}
+
+.cell.red {
+    background-color: rgb(220, 60, 60) !important;
+    cursor: default;
+}
+
+.cell.hit {
+    background-color: rgb(220, 60, 60) !important;
+    cursor: default;
+}
+
+.cell.miss {
+    background-color: rgb(177, 176, 176) !important;
+    color: black;
+    cursor: default;
+}
+
+.computerBoardContainer .cell.empty,
+.computerBoardContainer .cell.ship {
+    cursor: pointer;
+}
+
+.playerBoardContainer .cell.empty,
+.playerBoardContainer .cell.ship {
+    cursor: default;
+}
+
+
+.playerBoardBelow, .computerBoardBelow {
+    height: 125px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.changeDirButton {
+    padding: 10px 20px;
+    font-size: 24px;
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer
+}
+
+.changeDirButton:hover {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.changeDirButton:active {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transform: scale(0.98);
+}
+
+
+@media (max-width: 500px) {
+    .boardsSpace {
+        flex-direction: column;
+    }
+
+    .computerBoardContainer, .playerBoardContainer {
+        width: 80%;
+        margin: 10px auto;
+    }
+}
+
+
+
+
+----------------------------------------
+
