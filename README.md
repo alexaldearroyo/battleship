@@ -1,6 +1,6 @@
 # Battleship Game
 
-![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat&logo=typescript)
+![TypeScript](https://img.shields.io/badge/TypeScript-green?style=flat&logo=typescript)
 ![Webpack](https://img.shields.io/badge/Webpack-blue?style=flat&logo=webpack)
 
 
